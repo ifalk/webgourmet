@@ -7,5 +7,3 @@ The idea is to generate a simple searchable web interface based on the HTML expo
 The scripts are based on [this approach](https://github.com/jesjimher/webgourmet), hence the same name.
 
 
-
-
