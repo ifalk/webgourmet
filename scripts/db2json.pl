@@ -80,35 +80,57 @@ my $dbh = DBI->connect($dsn, $userid, $password, {
 print "Opened database successfully\n";
 
 
+# get ingredients and build id -> ingredient hash
+my $ing_stmt = qq(select recipe_id, group_concat(item, ' ') as item from ingredients group by recipe_id;); 
+my $ing_sth = $dbh->prepare( $ing_stmt);
+my $rv = $ing_sth->execute() or die $DBI::errstr;
+if($rv < 0) {
+  print $DBI::errstr;
+}
+
+
+my %recipes_ing;
+while (my $ing_list = $ing_sth->fetchrow_hashref()) {
+  if ($ing_list->{'item'}) {
+    $recipes_ing{$ing_list->{'recipe_id'}} = $ing_list->{'item'};
+  }
+}
+
+print STDERR "Number of ids in ingredient lists: ", scalar(keys %recipes_ing), "\n";
+
 my $stmt = qq(select r.id,r.title,r.yields,r.yield_unit,r.instructions,r.modifications,r.source,r.rating,c.category,r.deleted from recipe r inner join categories c on r.id=c.recipe_id where r.deleted=0);
 my $sth = $dbh->prepare( $stmt );
 
-my $rv = $sth->execute() or die $DBI::errstr;
+$rv = $sth->execute() or die $DBI::errstr;
 
 if($rv < 0) {
    print $DBI::errstr;
 }
-
-my @no_category;
-my @contains_quotes;
-my @deleted;
 
 my $count = 0;
 my %recipes;
 
 while (my $row = $sth->fetchrow_hashref()) {
   my $id = $row->{'id'};
+
+
   my $instructions = $row->{'instructions'};
   if ($instructions) {
     my $row->{'instructions'} = join(';', split(/\n+/, $instructions));
   }
-  foreach my $key (qw(title instructions)) {
+
+  if (exists $recipes_ing{$id}) {
+    $row->{'ingredients'} = $recipes_ing{$id};
+  };
+  
+  foreach my $key (qw(title instructions ingredients)) {
     if ($row->{$key}) {
       $row->{$key} =~ s{"}{}xmsg;
       $row->{$key} =~ s{\r}{}g;
     }
   }
 
+  
   $recipes{$id} = $row;
 }
 
