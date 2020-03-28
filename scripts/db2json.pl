@@ -127,6 +127,7 @@ while (my $row = $sth->fetchrow_hashref()) {
     if ($row->{$key}) {
       $row->{$key} =~ s{"}{}xmsg;
       $row->{$key} =~ s{\r}{}g;
+      $row->{$key} =~ s{\t}{ }xmsg;
     }
   }
 
