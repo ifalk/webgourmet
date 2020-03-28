@@ -98,6 +98,16 @@ my %recipes;
 
 while (my $row = $sth->fetchrow_hashref()) {
   my $id = $row->{'id'};
+  my $instructions = $row->{'instructions'};
+  if ($instructions) {
+    my $row->{'instructions'} = join(';', split(/\n+/, $instructions));
+  }
+  foreach my $key (qw(title instructions)) {
+    if ($row->{$key}) {
+      $row->{$key} =~ s{"}{}xmsg;
+      $row->{$key} =~ s{\r}{}g;
+    }
+  }
 
   $recipes{$id} = $row;
 }
