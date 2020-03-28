@@ -5,7 +5,7 @@
 ## Keywords: 
 ## X-URL: 
 
-SCRIPTS_PL=../scripts/
+SCRIPTS_PL=scripts
 
 HTML=/home/falk/gourmet_html/Rezepte.html/index.htm
 JSON=/home/falk/www/rezepte/recipes.json
