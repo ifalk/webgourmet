@@ -59,10 +59,8 @@ unless (@ARGV) { pod2usage(2) };
 
 my $database = $ARGV[0];
 
-$database = '/home/falk/.gourmet/recipes.db.bak';
-
-binmode(STDERR, 'encoding(UTF-8)');
-binmode(STDOUT, 'encoding(UTF-8)');
+#binmode(STDERR, 'encoding(UTF-8)');
+#binmode(STDOUT, 'encoding(UTF-8)');
 
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
@@ -116,11 +114,13 @@ while (my $row = $sth->fetchrow_hashref()) {
 
   my $instructions = $row->{'instructions'};
   if ($instructions) {
-    my $row->{'instructions'} = join(';', split(/\n+/, $instructions));
+    $row->{'instructions'} = join(';', split(/\n+/, $instructions));
   }
 
   if (exists $recipes_ing{$id}) {
     $row->{'ingredients'} = $recipes_ing{$id};
+  } else {
+    print STDERR "recipe $id ($row->{title}) has no ingredients\n";
   };
   
   foreach my $key (qw(title instructions ingredients)) {
@@ -130,7 +130,6 @@ while (my $row = $sth->fetchrow_hashref()) {
       $row->{$key} =~ s{\t}{ }xmsg;
     }
   }
-
   
   $recipes{$id} = $row;
 }
@@ -139,10 +138,16 @@ print STDERR "Number of recipes: ", scalar(keys %recipes), "\n";
 
 my @ids_no_cat = grep {not defined $recipes{$_}->{category} } keys %recipes;
 
-print STDERR Dumper(@ids_no_cat), "\n";
+if (@ids_no_cat) {
+  print STDERR "There are $#ids_no_cat recipes without a category: \n";
+  print STDERR join (', ', sort {$a <=> $b} @ids_no_cat), "\n";
+}
+
+print Dumper(\%recipes);
 
 #$sth->finish();
 $dbh->disconnect();
+
 
 1;
 
