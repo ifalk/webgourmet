@@ -7,12 +7,13 @@
 
 SCRIPTS_PL=scripts
 
-HTML=/home/falk/gourmet_html/Rezepte.html/index.htm
-JSON=/home/falk/www/rezepte/recipes.json
 RECIPES_DB=/home/falk/.gourmet/recipes.db.bak
 
 .PHONY: test_links
 
+### this is only for consistency testing
+HTML=/home/falk/gourmet_html/Rezepte.html/index.htm
+JSON=/home/falk/www/rezepte/recipes.json
 test_links: $(SCRIPTS_PL)/test_links.pl $(HTML) $(JSON)
 	perl $< --json=$(JSON) $(HTML)
 
