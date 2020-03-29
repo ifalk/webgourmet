@@ -156,9 +156,28 @@ if (@ids_no_cat) {
 }
 
 ### convert to json
+my @recipes_json;
 
-#print Dumper(\%recipes);
-print encode_json \%recipes;
+foreach my $id (sort {$a <=> $b} keys %recipes) {
+  next unless (exists $recipes{$id}->{'linkrecipe'});
+  my $linkrecipe = $recipes{$id}->{'linkrecipe'};
+  my $title_string = "<a href='$linkrecipe'>$recipes{$id}->{title}</a>";
+
+  my $searchfield = join(',', map { $recipes{$id}->{$_} or '' } (qw(title ingredients instructions modifications source category)));
+  my $entry = {
+    'id' => $id,
+    'title' => $title_string,
+    'category' => $recipes{$id}->{'category'} ? $recipes{$id}->{'category'} : '',
+    'yields' => $recipes{$id}->{'yields'} ? $recipes{$id}->{'yields'} : '0',
+    'yieldunits' => $recipes{$id}->{'yield_unit'} ? $recipes{$id}->{'yield_unit'} : '',
+    'rating' => $recipes{$id}->{'rating'} ? $recipes{$id}->{'rating'} : '',
+  };
+  push (@recipes_json, $entry);
+
+}
+
+#print Dumper(\@recipes_json);
+print encode_json \@recipes_json;
 
 #$sth->finish();
 $dbh->disconnect();
