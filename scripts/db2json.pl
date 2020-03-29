@@ -171,6 +171,7 @@ foreach my $id (sort {$a <=> $b} keys %recipes) {
     'yields' => $recipes{$id}->{'yields'} ? $recipes{$id}->{'yields'} : '0',
     'yieldunits' => $recipes{$id}->{'yield_unit'} ? $recipes{$id}->{'yield_unit'} : '',
     'rating' => $recipes{$id}->{'rating'} ? $recipes{$id}->{'rating'} : '',
+    'searchfield' => $searchfield,
   };
   push (@recipes_json, $entry);
 
