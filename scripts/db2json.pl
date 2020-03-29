@@ -60,12 +60,15 @@ unless (@ARGV) { pod2usage(2) };
 my $database = $ARGV[0];
 my %ids2links = %{ require "$opts{links}" };
 
-#binmode(STDERR, 'encoding(UTF-8)');
+binmode(STDERR, 'encoding(UTF-8)');
 #binmode(STDOUT, 'encoding(UTF-8)');
 
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
+use JSON;
+
+###############################
 
 my $driver = "SQLite";
 my $dsn = "DBI:$driver:dbname=$database";
@@ -73,7 +76,8 @@ my $userid = "";
 my $password = "";
 my $dbh = DBI->connect($dsn, $userid, $password, { 
 	RaiseError => 1,
-	sqlite_open_flags => SQLITE_OPEN_READONLY, 
+	sqlite_open_flags => SQLITE_OPEN_READONLY,
+	sqlite_unicode => 1, 
 	})
    or die $DBI::errstr;
 
@@ -151,7 +155,10 @@ if (@ids_no_cat) {
   print STDERR join (', ', sort {$a <=> $b} @ids_no_cat), "\n";
 }
 
-print Dumper(\%recipes);
+### convert to json
+
+#print Dumper(\%recipes);
+print encode_json \%recipes;
 
 #$sth->finish();
 $dbh->disconnect();
