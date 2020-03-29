@@ -9,6 +9,7 @@ SCRIPTS_PL=scripts
 
 HTML=/home/falk/gourmet_html/Rezepte.html/index.htm
 JSON=/home/falk/www/rezepte/recipes.json
+RECIPES_DB=/home/falk/.gourmet/recipes.db.bak
 
 .PHONY: test_links
 
@@ -17,5 +18,9 @@ test_links: $(SCRIPTS_PL)/test_links.pl $(HTML) $(JSON)
 
 id_2_html_links.pl: $(SCRIPTS_PL)/get_id2html_links.pl $(HTML)
 	perl $< $(HTML) > $@
+
+## Please ensure that db is not locked when calling
+recipes.json: $(SCRIPTS_PL)/db2json.pl id_2_html_links.pl $(RECIPES_DB)
+	perl $< --links=./id_2_html_links.pl $(RECIPES_DB) > $@
 
 ### Makefile ends here
