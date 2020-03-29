@@ -38,11 +38,11 @@ The recipe db
 
 
 my %opts = (
-	    'an_option' => 'default value',
+	    'links' => '',
 	   );
 
 my @optkeys = (
-	       'an_option:s',
+	       'links=s',
 	      );
 
 unless (GetOptions (\%opts, @optkeys)) { pod2usage(2); };
@@ -52,12 +52,13 @@ print STDERR Dumper(\%opts);
 
 use List::MoreUtils qw(all);
 
-my @required = ();
+my @required = ('links');
 
 unless (all { $opts{$_} } @required) { pod2usage(2) };
 unless (@ARGV) { pod2usage(2) }; 
 
 my $database = $ARGV[0];
+my %ids2links = %{ require "$opts{links}" };
 
 #binmode(STDERR, 'encoding(UTF-8)');
 #binmode(STDOUT, 'encoding(UTF-8)');
@@ -75,7 +76,8 @@ my $dbh = DBI->connect($dsn, $userid, $password, {
 	sqlite_open_flags => SQLITE_OPEN_READONLY, 
 	})
    or die $DBI::errstr;
-print "Opened database successfully\n";
+
+print STDERR "Opened database successfully\n";
 
 
 # get ingredients and build id -> ingredient hash
@@ -122,6 +124,12 @@ while (my $row = $sth->fetchrow_hashref()) {
   } else {
     print STDERR "recipe $id ($row->{title}) has no ingredients\n";
   };
+
+  if ($ids2links{$id}) {
+    $row->{'linkrecipe'} = $ids2links{$id};
+  } else {
+    print STDERR "recipe $id ($row->{title}) has no link\n";
+  }
   
   foreach my $key (qw(title instructions ingredients)) {
     if ($row->{$key}) {
