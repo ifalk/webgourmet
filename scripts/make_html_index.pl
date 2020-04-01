@@ -97,8 +97,7 @@ use XML::LibXML '1.70';
 
 my $gourmet_dom = XML::LibXML->load_html(location => $opts{gourmet_index});
 
-my $table_div = ($gourmet_dom->findnodes( '//div[@class="index"]' ))[0];
-# print $table_div->toString();
+my $table = ($gourmet_dom->findnodes( '//table[@class="index"]' ))[0];
 
 my $dom = XML::LibXML->createDocument( "1.0", "UTF-8" );
 my $html = $dom->createElement('html');
@@ -205,8 +204,29 @@ $div->addChild($sdiv);
 my $dl = $dom->createElement('dl');
 $dl->setAttribute('class', 'recipelist');
 $div->addChild($dl);
+$body->addChild($div);
+
+#### import div with recipe list from index.htm
+
+my $str = $table->serialize(1);
+$str =~ s{E_rtrag}{Ertrag}xmsg;
+
+my $tdom = XML::LibXML->load_html(
+  'string' => $str
+  );
+$table = ($tdom->findnodes('//table[@class="index"]' ))[0];
+
+$dom->importNode($table);
+$div = $dom->createElement('div');
+$div->setAttribute('class', 'index');
+$a = $dom->createElement('a');
+$a->setAttribute('id', 'alphabetisch');
+$div->addChild($a);
+$div->addChild($table);
+
 
 $body->addChild($div);
+
 
 $html->addChild($body);
 
