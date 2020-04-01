@@ -1,0 +1,108 @@
+body {
+    background-color:aliceblue;
+    font-family: 'Lato',sans-serif;
+    font-size: 1em;
+/*    text-align: center; */
+}
+
+/*
+h1,h2,div,ul {
+    border: 1px solid;
+}*/
+
+header {
+    font-size: 1.75em;
+    font-weight: bold;
+    margin: 0.67em 0em;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.1em;
+    color: #006;
+}
+
+dl {
+    list-style: none;
+    padding: 0;
+    font-size: 1em;
+}
+
+dt {
+    font-weight: bold;
+    margin: 0.5em 0em;
+    color: #006;
+    font-size: 1.1em;
+    text-align: center;
+}
+p#instructions,p#modifications {
+    text-align: left;
+    /*    padding: 0 10em;*/
+    width: 100%;
+    margin: 1em auto;
+}
+
+#yieldunits {
+    font-size: 1em;
+    font-weight: normal;
+}
+
+div#recipedetail {
+    display:none;
+    max-width: 40em;
+    margin: 1em auto;
+}
+
+#recipedetail ul {
+    list-style-type:none;
+    margin: 0;
+    padding: 0;
+}
+
+div#recipelist dl dd {
+    cursor:pointer;
+    list-style-type: none;
+/*    margin:0; */
+}
+
+div#recipelist dl dd.selected {
+    font-weight:bold;
+}
+
+input#yields {
+    width: 3em;
+}
+
+input[type=number] {
+    font-size: 1em;
+    text-align: center;
+}
+
+/* Hide input spinner buttons */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+input[type=text] {
+    font-size: 1em;
+    text-align: center;
+}
+
+input[type=button] {
+    font-size: 1em;
+}
+
+/* Don't use fancy fonts in low-res screens */
+@media only screen and (max-width:720px) {
+    body {
+        font-family: sans-serif;
+    }
+}
+/*
+@media (orientation:landscape) {
+    h1#title {
+        text-align:left;
+    }
+
+}*/
