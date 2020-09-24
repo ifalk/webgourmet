@@ -7,7 +7,7 @@
 
 SCRIPTS_PL=scripts
 
-RECIPES_DB=/home/falk/.gourmet/recipes.db.bak
+RECIPES_DB=/home/falk/.gourmet/recipes.20200923.db
 
 .PHONY: test_links
 
@@ -25,6 +25,10 @@ id_2_html_links.pl: $(SCRIPTS_PL)/get_id2html_links.pl $(HTML)
 ## Please ensure that db is not locked when calling
 recipes.json: $(SCRIPTS_PL)/db2json.pl id_2_html_links.pl $(RECIPES_DB)
 	perl $< --links=./id_2_html_links.pl $(RECIPES_DB) > $@
+
+### another more elaborate way of accessing the db and building the json array
+recipes.json: exportjson.pl id_2_html_links.pl $(RECIPES_DB)
+	perl $< --ids2links=./id_2_html_links.pl $(RECIPES_DB) > $@
 
 ### generate index.html by combining index file produced by gourmet
 ### html export and recipes.json generated earlier
