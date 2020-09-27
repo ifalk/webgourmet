@@ -17,7 +17,7 @@ JS_CSS=/home/falk/webgourmet/web
 WWW_LOCAL=/var/www/html/rezepte
 WWW=/home/falk/www/rezepte
 
-.PHONY: test_links correct_spelling clean_local copy_local clean_www copy_www
+.PHONY: test_links correct_spelling clean_local copy_local clean_www copy_www show_last_db_mod
 
 ### this is only for consistency testing
 
@@ -43,10 +43,19 @@ id_2_html_links.pl: $(SCRIPTS_PL)/get_id2html_links.pl $(HTML_INDEX)
 recipes.json: $(SCRIPTS_PL)/exportjson.pl id_2_html_links.pl $(RECIPES_DB)
 	perl $< --ids2links=./id_2_html_links.pl $(RECIPES_DB) > $@
 
+
+# DB_LAST_MOD := $(shell stat -c %y $$RECIPES_DB | cut -d" " -f1)
+DB_LAST_MOD := $(shell echo $$RECIPES_DB)
+show_last_db_mod: $(RECIPES_DB)
+	DB_LAST_MOD=$$(stat -c %y $(RECIPES_DB) | cut -d" " -f1) ;\
+	echo $$DB_LAST_MOD
+
 ### generate index.html by combining index file produced by gourmet
 ### html export and recipes.json generated earlier
-index.html: $(SCRIPTS_PL)/make_html_index.pl $(HTML_INDEX) recipes.json
-	perl $< --gourmet_index=$(HTML_INDEX) --json=recipes.json > $@
+index.html: $(SCRIPTS_PL)/make_html_index.pl $(HTML_INDEX) recipes.json $(RECIPES_DB)
+	DB_LAST_MOD=$$(stat -c %y $(RECIPES_DB) | cut -d" " -f1) ;\
+	echo $$DB_LAST_MOD ;\
+	perl $< --gourmet_index=$(HTML_INDEX) --db_last_mod=$$DB_LAST_MOD --json=recipes.json > $@
 
 ### copy files to apache root for test
 clean_local: 
