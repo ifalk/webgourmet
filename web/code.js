@@ -136,14 +136,14 @@ $( document ).ready(function() {
     });
 
     /* back-button presses just goes back to recipe list */
-    $(window).bind('popstate',function(){
-        $("#recipedetail").hide(100);
-        $("#recipelist").show(100,function(){
-            $("header").text("Rezept Liste");
-            if (!isMobile)
-                $("#filter").focus();
-        });
-    });
+    // $(window).bind('popstate',function(){
+    //     $("#recipedetail").hide(100);
+    //     $("#recipelist").show(100,function(){
+    //         $("header").text("Rezept Liste");
+    //         if (!isMobile)
+    //             $("#filter").focus();
+    //     });
+    // });
 
     /* Go back to recipe list */
     $("#backbutton").click(function() {
