@@ -182,7 +182,7 @@ foreach my $id (keys %recipes) {
   $jentry->{'id'} = $id;
   my $link;
   if ($ids2links{$id}) {
-    $link = "<a href='$ids2links{$id}'>$recipes{$id}->{title}</a>";
+    $link = "<a href='$ids2links{$id}' target='_blank'>$recipes{$id}->{title}</a>";
   } else {
     warn "No link for id $id";
     print STDERR Dumper($recipes{$id});
