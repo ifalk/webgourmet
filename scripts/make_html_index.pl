@@ -227,8 +227,14 @@ my $tdom = XML::LibXML->load_html(
   'string' => $str
   );
 $table = ($tdom->findnodes('//table[@class="index"]' ))[0];
-
 $dom->importNode($table);
+
+# set target attribute to '_blank' on <a> elements, to open links in new tab/window
+my @a = $table->findnodes('//a');
+foreach my $a_el (@a) {
+  $a_el->setAttribute('target', '_blank');
+}
+
 $div = $dom->createElement('div');
 $div->setAttribute('class', 'index');
 $a = $dom->createElement('a');
