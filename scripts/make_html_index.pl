@@ -234,6 +234,24 @@ my @a = $table->findnodes('//a');
 foreach my $a_el (@a) {
   $a_el->setAttribute('target', '_blank');
 }
+# remove nodes with class 'cuisine' and 'yields'
+my @trows = $table->findnodes('tr');
+foreach my $tr (@trows) {
+  my @cuisine = $tr->findnodes('*[@class="cuisine"]');
+  my @yields = $tr->findnodes('*[@class="yields"]');
+  foreach my $node (@cuisine, @yields) {
+    $tr->removeChild($node);
+  }
+
+}
+
+# in nodes with class 'rating' remove text if 'None' or '0'
+my @none = $table->findnodes('//td[@class="rating" and text()="None"]');
+my @zero = $table->findnodes('//td[@class="rating" and text()="0"]');
+foreach my $node (@none, @zero) {
+  $node->findnodes('text()')->[0]->setData('-');
+}
+
 
 $div = $dom->createElement('div');
 $div->setAttribute('class', 'index');
