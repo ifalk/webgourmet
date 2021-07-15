@@ -7,7 +7,7 @@
 
 SCRIPTS_PL=scripts
 
-RECIPES_DB=/home/falk/.gourmet/recipes.20201014.db
+RECIPES_DB=/home/falk/.gourmet/recipes.20210715.db
 
 HTML_INDEX=/home/falk/gourmet_html/Rezepte.html/index.htm
 HTML=/home/falk/gourmet_html/Rezepte.html/
