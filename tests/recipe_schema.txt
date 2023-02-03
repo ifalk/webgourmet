@@ -1,0 +1,98 @@
+id|title|instructions|modifications|cuisine|rating|description|source|preptime|cooktime|servings|image|thumb|deleted|recipe_hash|ingredient_hash|link|last_modified|yields|yield_unit
+
+CREATE TABLE info (version_super INTEGER,version_major INTEGER,version_minor INTEGER,last_access INTEGER);
+CREATE TABLE recipe (id INTEGER PRIMARY KEY AUTOINCREMENT,title text,instructions text,modifications text,cuisine text,rating INTEGER,description text,source text,preptime INTEGER,cooktime INTEGER,servings float,image BLOB,thumb BLOB,deleted bool,recipe_hash VARCHAR(32),ingredient_hash VARCHAR(32),link text,last_modified INTEGER, yields FLOAT, yield_unit VARCHAR(32));
+CREATE INDEX recipeidIndex ON recipe (id);
+CREATE TABLE nutrition (ndbno INTEGER PRIMARY KEY AUTOINCREMENT,desc char(100),water float,kcal float,protein float,lipid float,ash float,carb float,fiber float,sugar float,calcium float,iron float,magnesium float,phosphorus float,potassium float,sodium float,zinc float,copper float,manganese float,selenium float,vitaminc float,thiamin float,riboflavin float,niacin float,pantoacid float,vitaminb6 float,folatetotal float,folateacid float,foodfolate float,folatedfe float,vitb12 float,vitaiu float,vitarae float,retinol float,vite float,vitk float,alphac float,betac float,betacrypt float,lypocene float,lutzea float,fasat float,famono float,fapoly float,cholestrl float,gramwt1 float,gramdsc1 char(100),gramwt2 float,gramdsc2 char(100),refusepct float,foodgroup text);
+CREATE INDEX nutritionndbnoIndex ON nutrition (ndbno);
+CREATE TABLE usda_weights (ndbno INTEGER,seq float,amount float,unit char(80),gramwt float,ndata INTEGER,stdev float);
+CREATE TABLE nutritionaliases (ingkey text PRIMARY KEY,ndbno INTEGER,density_equivalent char(20));
+CREATE INDEX nutritionaliasesingkeyIndex ON nutritionaliases (ingkey);
+CREATE TABLE nutritionconversions (ingkey text,unit text,factor float);
+CREATE TABLE plugin_info (
+	plugin TEXT, 
+	id INTEGER NOT NULL, 
+	version_super INTEGER, 
+	version_major INTEGER, 
+	version_minor INTEGER, 
+	plugin_version VARCHAR(32), 
+	PRIMARY KEY (id)
+);
+CREATE TABLE categories (
+	id INTEGER NOT NULL, 
+	recipe_id INTEGER, 
+	category TEXT, 
+	PRIMARY KEY (id), 
+	 FOREIGN KEY(recipe_id) REFERENCES recipe (id)
+);
+CREATE TABLE ingredients (
+	id INTEGER NOT NULL, 
+	recipe_id INTEGER, 
+	refid INTEGER, 
+	unit TEXT, 
+	amount FLOAT, 
+	rangeamount FLOAT, 
+	item TEXT, 
+	ingkey TEXT, 
+	optional BOOLEAN, 
+	shopoptional INTEGER, 
+	inggroup TEXT, 
+	position INTEGER, 
+	deleted BOOLEAN, 
+	PRIMARY KEY (id), 
+	 FOREIGN KEY(recipe_id) REFERENCES recipe (id), 
+	 FOREIGN KEY(refid) REFERENCES recipe (id)
+);
+CREATE TABLE keylookup (
+	id INTEGER NOT NULL, 
+	word TEXT, 
+	item TEXT, 
+	ingkey TEXT, 
+	count INTEGER, 
+	PRIMARY KEY (id)
+);
+CREATE TABLE shopcats (
+	id INTEGER NOT NULL, 
+	ingkey TEXT, 
+	shopcategory TEXT, 
+	position INTEGER, 
+	PRIMARY KEY (id)
+);
+CREATE TABLE shopcatsorder (
+	id INTEGER NOT NULL, 
+	shopcategory TEXT, 
+	position INTEGER, 
+	PRIMARY KEY (id)
+);
+CREATE TABLE pantry (
+	id INTEGER NOT NULL, 
+	ingkey TEXT, 
+	pantry BOOLEAN, 
+	PRIMARY KEY (id), 
+	CHECK (pantry IN (0, 1))
+);
+CREATE TABLE density (
+	id INTEGER NOT NULL, 
+	dkey VARCHAR(150), 
+	value VARCHAR(150), 
+	PRIMARY KEY (id)
+);
+CREATE TABLE crossunitdict (
+	id INTEGER NOT NULL, 
+	cukey VARCHAR(150), 
+	value VARCHAR(150), 
+	PRIMARY KEY (id)
+);
+CREATE TABLE unitdict (
+	id INTEGER NOT NULL, 
+	ukey VARCHAR(150), 
+	value VARCHAR(150), 
+	PRIMARY KEY (id)
+);
+CREATE TABLE convtable (
+	id INTEGER NOT NULL, 
+	ckey VARCHAR(150), 
+	value VARCHAR(150), 
+	PRIMARY KEY (id)
+);
+/* No STAT tables available */
