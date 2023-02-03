@@ -7,41 +7,25 @@
 
 SCRIPTS_PL=scripts
 
-RECIPES_DB=/home/falk/.gourmet/recipes.20210715.db
-
-HTML_INDEX=/home/falk/gourmet_html/Rezepte.html/index.htm
-HTML=/home/falk/gourmet_html/Rezepte.html/
+# RECIPES_DB=/home/falk/.gourmet/recipes.20210715.db
+RECIPES_DB=/home/falk/webgourmet/tests/recipes.db
 
 JS_CSS=/home/falk/webgourmet/web
 
 WWW_LOCAL=/var/www/html/rezepte
 WWW=/home/falk/www/rezepte
 
-.PHONY: test_links correct_spelling clean_local copy_local clean_www copy_www show_last_db_mod
-
-### this is only for consistency testing
+.PHONY: clean_local copy_local clean_www copy_www show_last_db_mod
 
 JSON=/home/falk/www/rezepte/recipes.json
-test_links: $(SCRIPTS_PL)/test_links.pl $(HTML) $(JSON)
-	perl $< --json=$(JSON) $(HTML)
-
-### replace 'E_rtrag' by 'Ertrag' in *.htm files exported by gourmet
-correct_spelling:
-	cd $(HTML) && sed -i 's/E_rtrag/Ertrag/g' *.htm
-
-
-### generate perl hash db-id -> html file name, using index file produced by gourmet html export
-id_2_html_links.pl: $(SCRIPTS_PL)/get_id2html_links.pl $(HTML_INDEX)
-	perl $< $(HTML_INDEX) > $@
 
 ### generate json array containing recipes from gourmet sqlite db
 ## Please ensure that db is not locked when calling
 # recipes.json: $(SCRIPTS_PL)/db2json.pl id_2_html_links.pl $(RECIPES_DB)
 # 	perl $< --links=./id_2_html_links.pl $(RECIPES_DB) > $@
 
-### another more elaborate way of accessing the db and building the json array
-recipes.json: $(SCRIPTS_PL)/exportjson.pl id_2_html_links.pl $(RECIPES_DB)
-	perl $< --ids2links=./id_2_html_links.pl $(RECIPES_DB) > $@
+recipes.json: $(SCRIPTS_PL)/db2json.pl $(RECIPES_DB)
+	perl $< $(RECIPES_DB) > $@
 
 
 # DB_LAST_MOD := $(shell stat -c %y $$RECIPES_DB | cut -d" " -f1)
@@ -67,7 +51,7 @@ clean_local:
 	sudo rm -f *.css && \
 	sudo rm -f *.js
 
-copy_local: correct_spelling clean_local recipes.json index.html
+copy_local: clean_local recipes.json index.html
 	sudo cp $(HTML)/*.htm $(WWW_LOCAL)/ && \
 	sudo cp -r $(HTML)/pics $(WWW_LOCAL)/ && \
 	sudo cp $(HTML)/style.css $(WWW_LOCAL)/ && \

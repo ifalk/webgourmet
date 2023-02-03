@@ -38,11 +38,9 @@ The recipe db
 
 
 my %opts = (
-	    'links' => '',
 	   );
 
 my @optkeys = (
-	       'links=s',
 	      );
 
 unless (GetOptions (\%opts, @optkeys)) { pod2usage(2); };
@@ -50,15 +48,9 @@ unless (GetOptions (\%opts, @optkeys)) { pod2usage(2); };
 print STDERR "Options:\n";
 print STDERR Dumper(\%opts);
 
-use List::MoreUtils qw(all);
-
-my @required = ('links');
-
-unless (all { $opts{$_} } @required) { pod2usage(2) };
 unless (@ARGV) { pod2usage(2) }; 
 
 my $database = $ARGV[0];
-my %ids2links = %{ require "$opts{links}" };
 
 binmode(STDERR, 'encoding(UTF-8)');
 #binmode(STDOUT, 'encoding(UTF-8)');
@@ -68,6 +60,7 @@ use DBD::SQLite::Constants qw/:file_open/;
 
 use JSON;
 
+use strict;
 ###############################
 
 my $driver = "SQLite";
@@ -95,14 +88,23 @@ if($rv < 0) {
 
 my %recipes_ing;
 while (my $ing_list = $ing_sth->fetchrow_hashref()) {
-  if ($ing_list->{'item'}) {
-    $recipes_ing{$ing_list->{'recipe_id'}} = $ing_list->{'item'};
-  }
+  print STDERR Dumper($ing_list);
+  # if ($ing_list->{'item'}) {
+  #   $recipes_ing{$ing_list->{'recipe_id'}} = $ing_list->{'item'};
+  # }
 }
+
+#print STDERR Dumper(\%recipes_ing);
 
 print STDERR "Number of ids in ingredient lists: ", scalar(keys %recipes_ing), "\n";
 
-my $stmt = qq(select r.id,r.title,r.yields,r.yield_unit,r.instructions,r.modifications,r.source,r.rating,c.category,r.deleted from recipe r inner join categories c on r.id=c.recipe_id where r.deleted=0);
+exit 1;
+
+### get recipes
+
+### left join instead of inner join so we get recipe ids even if they don't have categories
+my $stmt = qq(select r.id,r.title,r.instructions,r.modifications,r.cuisine,r.rating,r.source,time(r.preptime, 'unixepoch'),time(r.cooktime, 'unixepoch'),r.servings,r.image,r.thumb,r.link,date(r.last_modified,'unixepoch'),r.yields,r.yield_unit,c.category from recipe r left join categories c on r.id=c.recipe_id where r.deleted=0 limit 20);
+
 my $sth = $dbh->prepare( $stmt );
 
 $rv = $sth->execute() or die $DBI::errstr;
@@ -129,19 +131,6 @@ while (my $row = $sth->fetchrow_hashref()) {
     print STDERR "recipe $id ($row->{title}) has no ingredients\n";
   };
 
-  if ($ids2links{$id}) {
-    $row->{'linkrecipe'} = $ids2links{$id};
-  } else {
-    print STDERR "recipe $id ($row->{title}) has no link\n";
-  }
-  
-  foreach my $key (qw(title instructions ingredients)) {
-    if ($row->{$key}) {
-      $row->{$key} =~ s{"}{}xmsg;
-      $row->{$key} =~ s{\r}{}g;
-      $row->{$key} =~ s{\t}{ }xmsg;
-    }
-  }
   
   $recipes{$id} = $row;
 }
@@ -159,26 +148,37 @@ if (@ids_no_cat) {
 my @recipes_json;
 
 foreach my $id (sort {$a <=> $b} keys %recipes) {
-  next unless (exists $recipes{$id}->{'linkrecipe'});
-  my $linkrecipe = $recipes{$id}->{'linkrecipe'};
-  my $title_string = "<a href='$linkrecipe'>$recipes{$id}->{title}</a>";
 
-  my $searchfield = join(',', map { $recipes{$id}->{$_} or '' } (qw(title ingredients instructions modifications source category)));
   my $entry = {
     'id' => $id,
-    'title' => $title_string,
+      'title' => $recipes{$id}->{'title'} ? $recipes{$id}->{'title'} : '',
+      'ingredients' => $recipes{$id}->{'ingredients'} ? $recipes{$id}->{'ingredients'} : '',
+      'instructions' => $recipes{$id}->{'instructions'} ? $recipes{$id}->{'instructions'} : '',
+      'modifications' => $recipes{$id}->{'modifications'} ? $recipes{$id}->{'modifications'} : '',
     'category' => $recipes{$id}->{'category'} ? $recipes{$id}->{'category'} : '',
     'yields' => $recipes{$id}->{'yields'} ? $recipes{$id}->{'yields'} : '0',
     'yieldunits' => $recipes{$id}->{'yield_unit'} ? $recipes{$id}->{'yield_unit'} : '',
     'rating' => $recipes{$id}->{'rating'} ? $recipes{$id}->{'rating'} : '',
-    'searchfield' => $searchfield,
   };
+
+  foreach my $key (qw(title instructions modifications ingredients)) {
+    if ($recipes{$id}->{$key}) {
+      $recipes{$id}->{$key} =~ s{"}{}xmsg;
+      $recipes{$id}->{$key} =~ s{\r}{}g;
+      $recipes{$id}->{$key} =~ s{\t}{ }xmsg;
+    }
+  }
+
+  my $searchfield = join(',', map { $recipes{$id}->{$_} or '' } (qw(title ingredients instructions modifications source category)));
+  $entry->{'searchfield'} = $searchfield;
+
+
   push (@recipes_json, $entry);
 
 }
 
 #print Dumper(\@recipes_json);
-print encode_json \@recipes_json;
+#print encode_json \@recipes_json;
 
 #$sth->finish();
 $dbh->disconnect();
