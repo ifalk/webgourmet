@@ -78,7 +78,14 @@ print STDERR "Opened database successfully\n";
 
 
 # get ingredients and build id -> ingredient hash
-my $ing_stmt = qq(select recipe_id, group_concat(item, ' ') as item from ingredients group by recipe_id;); 
+# my $ing_stmt = qq(select recipe_id, group_concat(item, ' ') as item from ingredients group by recipe_id;); 
+# my $ing_sth = $dbh->prepare( $ing_stmt);
+# my $rv = $ing_sth->execute() or die $DBI::errstr;
+# if($rv < 0) {
+#   print $DBI::errstr;
+# }
+
+my $ing_stmt = qq(select * from ingredients where recipe_id in ('246', '1122', '1302');); 
 my $ing_sth = $dbh->prepare( $ing_stmt);
 my $rv = $ing_sth->execute() or die $DBI::errstr;
 if($rv < 0) {
@@ -88,11 +95,33 @@ if($rv < 0) {
 
 my %recipes_ing;
 while (my $ing_list = $ing_sth->fetchrow_hashref()) {
-  print STDERR Dumper($ing_list);
-  # if ($ing_list->{'item'}) {
-  #   $recipes_ing{$ing_list->{'recipe_id'}} = $ing_list->{'item'};
-  # }
+  next if ($ing_list->{deleted});
+
+  my $recipe_id = $ing_list->{recipe_id};
+
+  my $ing_group = 'none';
+  if ($ing_list->{inggroup}) {
+    $ing_group = $ing_list->{inggroup};
+  }
+  my $item = $ing_list->{item};
+
+  foreach my $field (qw(amount unit)) {
+    $recipes_ing{$recipe_id}->{$ing_group}->{$item}->{$field} = $ing_list->{$field};
+  }
+
+  if ($ing_list->{unit} eq 'recipe') {
+    $recipes_ing{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
+  }
+  
+  $recipes_ing{$recipe_id}->{$ing_group}->{$item}->{optional} = 0;
+  if ($ing_list->{optional}) {
+    $recipes_ing{$recipe_id}->{$ing_group}->{$item}->{optional} = 1;
+  }
+  
 }
+
+print STDERR Dumper(\%recipes_ing);
+exit 1;
 
 #print STDERR Dumper(\%recipes_ing);
 
