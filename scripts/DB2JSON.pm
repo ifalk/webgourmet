@@ -59,7 +59,7 @@ sub run
 
   my $some_recipe_ids = [ qw(246 1122 1302) ];
 
-  my $sth = $class-> fetch_ingredients($dbh, $some_recipe_ids);
+  my $sth = $class-> fetch_some_ingredients($dbh, $some_recipe_ids);
 
   my $recipes_ing = $class->handle_ingredients($sth);
 
@@ -89,7 +89,7 @@ sub get_db_handle
   return $dbh;
 }
 
-sub fetch_ingredients
+sub fetch_some_ingredients
 {
   my $class = shift;
   my $dbh = shift;
@@ -99,6 +99,24 @@ sub fetch_ingredients
 
   my $recipe_id_string = join(', ', @{ $recipe_ids });
   my $ing_stmt = qq(select * from ingredients where recipe_id in ($recipe_id_string);); 
+  my $ing_sth = $dbh->prepare( $ing_stmt);
+  my $rv = $ing_sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $ing_sth;
+}
+
+sub fetch_ingredients
+{
+  my $class = shift;
+  my $dbh = shift;
+
+# get ingredients and build id -> ingredient hash
+
+  my $recipe_id_string = join(', ', @{ $recipe_ids });
+  my $ing_stmt = qq(select * from ingredients); 
   my $ing_sth = $dbh->prepare( $ing_stmt);
   my $rv = $ing_sth->execute() or die $DBI::errstr;
   if($rv < 0) {
