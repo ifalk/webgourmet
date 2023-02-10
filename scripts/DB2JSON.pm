@@ -115,7 +115,6 @@ sub fetch_ingredients
 
 # get ingredients and build id -> ingredient hash
 
-  my $recipe_id_string = join(', ', @{ $recipe_ids });
   my $ing_stmt = qq(select * from ingredients); 
   my $ing_sth = $dbh->prepare( $ing_stmt);
   my $rv = $ing_sth->execute() or die $DBI::errstr;
@@ -207,6 +206,59 @@ sub handle_optional
 
   return $optional;
 }
+
+sub float_to_frac {
+  my $class = shift;
+  my $n = shift;
+  my $approx = shift;
+
+
+  unless ($n) {
+    return '';
+  }
+
+  my $i = int($n);
+  my $rem = $n - $i;
+
   
+
+  if ($rem and $rem<$approx) {
+    return "$i";
+  } else {
+    my ($h, $k) = fractify($n);
+  }
+
+}
+
+sub fractify {
+  my $class = shift;
+
+  my $n = shift;
+
+  unless ($n) { die "number required\n"; }
+
+  use Math::BigInt;
+  use Math::BigRat;
+
+  my $x = my $y = Math::BigRat->new($n)->babs();
+  my $h = my $k1 = Math::BigInt->new(1);
+  my $k = my $h1 = Math::BigInt->new(0);
+
+  while (1) {
+    my $t = $y->as_int();
+    ($h, $h1) = ($t * $h + $h1, $h);
+    ($k, $k1) = ($t * $k + $k1, $k);
+    my $val = Math::BigRat->new($h, $k);
+    my $err = $val - $x;
+    last if ($err < 0.01);
+    printf "%s: %s / %s = %.16g (%.1g)\n", $t, $h, $k, $val, $err;
+    $y -= $t or last;
+    $y = 1 / $y;
+  }
+
+  return ($h, $k);
+}
+
+
 __END__
 
