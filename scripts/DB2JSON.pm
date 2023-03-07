@@ -68,6 +68,29 @@ sub run
   print STDERR Dumper($recipes_ing);
 }
 
+sub get_last_access
+{
+  my $class = shift;
+  my $database = shift;
+
+
+  my $last_access = 'undef';
+  
+  my $dbh = $class->get_db_handle($database);
+  my $stmt = qq(select date(last_access, 'unixepoch') from info;);
+  my $sth = $dbh->prepare($stmt);
+
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  $last_access = ($sth->fetchrow_array())[0];
+
+  return $last_access;
+
+}
+
 sub get_db_handle
 {
 
