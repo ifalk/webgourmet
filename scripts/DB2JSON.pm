@@ -7,6 +7,8 @@ use warnings;
 use strict;
 use English;
 
+use Data::Types qw(:all);
+
 use Data::Dumper;
 use Carp;
 use Carp::Assert;
@@ -125,6 +127,44 @@ sub fetch_ingredients
   return $ing_sth;
 }
 
+sub fetch_amounts
+{
+
+  # fetch distinct amounts in ingredient table (for testing)
+
+  my $class = shift;
+  my $dbh = shift;
+
+
+  my $stmt = qq(select distinct amount from ingredients); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+
+}
+
+sub fetch_images
+{
+  # fetch images (for testing)
+
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select id, image, thumb from recipe where deleted=0);
+  my $sth = $dbh->prepare($stmt);
+
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+}
+
 sub handle_ingredients
 {
   my $class = shift;
@@ -212,31 +252,61 @@ sub float_to_frac {
   my $n = shift;
   my $approx = shift;
 
+  unless ($approx) {
+    $approx = 0.01;
+  }
 
+  my %keep_divisors = (
+    2 => 1,
+    3 => 1,
+    4 => 1,
+    5 => 1,
+    6 => 1,
+    8 => 1,
+    10 => 1,
+    16 => 1
+  );
+  
   unless ($n) {
     return '';
   }
 
+  if (is_whole($n)) {
+    return $n;
+  }
+  
   my $i = int($n);
   my $rem = $n - $i;
 
-  
-
   if ($rem and $rem<$approx) {
     return "$i";
-  } else {
-    my ($h, $k) = fractify($n);
   }
+  
+  my ($h, $k) = $class->fractify($rem, $approx);
+  if ($keep_divisors{$k}) {
+    if ($i) {
+      return "$i $h/$k";
+    }
+    return "$h/$k";
+  }
+
+  my $rounded = sprintf("%.2f", $n);
+  return $rounded;
 
 }
 
 sub fractify {
   my $class = shift;
-
   my $n = shift;
+  my $approx = shift;
 
-  unless ($n) { die "number required\n"; }
+  if ($n eq '') { die "number required\n"; }
 
+  unless ($approx) {
+    $approx = 0.01;
+  }
+
+  
   use Math::BigInt;
   use Math::BigRat;
 
@@ -250,8 +320,9 @@ sub fractify {
     ($k, $k1) = ($t * $k + $k1, $k);
     my $val = Math::BigRat->new($h, $k);
     my $err = $val - $x;
-    last if ($err < 0.01);
-    printf "%s: %s / %s = %.16g (%.1g)\n", $t, $h, $k, $val, $err;
+    # my $out = sprintf "%s: %s / %s = %.16g (%.1g)\n", $t, $h, $k, $val, $err;
+    # print STDERR $out, "\n";
+    last if (abs($err) < $approx);
     $y -= $t or last;
     $y = 1 / $y;
   }
