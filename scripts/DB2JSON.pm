@@ -358,6 +358,10 @@ sub handle_optional
   return $optional;
 }
 
+sub stringify_amounts
+{
+}
+
 sub float_to_frac {
   my $class = shift;
   my $n = shift;
