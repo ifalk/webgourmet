@@ -87,6 +87,7 @@ sub get_last_access
 
   $last_access = ($sth->fetchrow_array())[0];
 
+  $dbh->disconnect();
   return $last_access;
 
 }
@@ -188,6 +189,48 @@ sub fetch_images
   return $sth;
 }
 
+sub fetch_inggroups
+{
+  # fetch inggroups
+
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select distinct inggroup from ingredients); 
+
+  my $sth = $dbh->prepare($stmt);
+
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+
+};
+
+sub fetch_recipes_wo_inggroup
+{
+  # fetch inggroups
+
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select distinct recipe_id from ingredients where inggroup is null or inggroup = '';); 
+
+  my $sth = $dbh->prepare($stmt);
+
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+
+};
+
+
+
 sub handle_ingredients
 {
   my $class = shift;
@@ -214,8 +257,12 @@ sub handle_ingredients
 	'amount' => $amount,
 	'optional' => $optional
     );
+
+
     while ( my ($key, $value) = each(%fields) ) {
-      $recipes_ing->{$recipe_id}->{$ing_group}->{$item}->{$key} = $value;
+      if ($recipes_ing->{$recipe_id}->{$ing_group}->{$item}->{$key}) {
+	$recipes_ing->{$recipe_id}->{$ing_group}->{$item}->{$key} = $value;
+      };
     };
 
     if ($unit and ($unit eq 'recipe')) {
