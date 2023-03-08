@@ -110,3 +110,5 @@ foreach my $amount (keys %amounts) {
   print STDERR "$amount\n";
   Local::Modulino::DB2JSON->fractify($amount), "\n";
 };
+
+$dbh->disconnect();

@@ -64,6 +64,6 @@ foreach my $id (keys %id2thumb) {
 
 chdir $oldcwd;
 
-exit 1;
+$dbh->disconnect();
 
 

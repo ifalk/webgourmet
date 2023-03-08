@@ -77,3 +77,5 @@ foreach my $amount (keys %not_wholes) {
   my $fractified = Local::Modulino::DB2JSON->float_to_frac($amount, 0.02);
   print STDERR "Fractified: $fractified\n";
 }
+
+$dbh->disconnect();
