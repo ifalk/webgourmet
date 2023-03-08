@@ -229,6 +229,47 @@ sub fetch_recipes_wo_inggroup
 
 };
 
+sub fetch_units
+{
+  # fetch units
+
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select distinct unit from ingredients); 
+
+  my $sth = $dbh->prepare($stmt);
+
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+
+};
+
+
+sub fetch_recipes_wo_unit
+{
+  # fetch units
+
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select distinct recipe_id from ingredients where unit is null or unit = '';); 
+
+  my $sth = $dbh->prepare($stmt);
+
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+
+};
+
 
 
 sub handle_ingredients
