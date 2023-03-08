@@ -25,33 +25,32 @@ while (my ($unit) = $sth->fetchrow()) {
 
 print STDERR "Number of distinct units: ", scalar(keys %units), "\n";
 
-#### for some reason this does not really work ?????
-# $sth = Local::Modulino::DB2JSON->fetch_recipes_wo_unit($dbh);
+$sth = Local::Modulino::DB2JSON->fetch_recipes_wo_unit($dbh);
 
-# my @recipes_wo_unit;
+my @recipes_wo_unit;
 
-# while (my ($unit) = $sth->fetchrow()) {
-#   push(@recipes_wo_unit, $unit);
-# };
+while (my ($unit) = $sth->fetchrow()) {
+  push(@recipes_wo_unit, $unit);
+};
 
-# print STDERR "Number of recipes wo unit: ", scalar(keys @recipes_wo_unit), "\n";
+print STDERR "Number of recipes with ingredient wo unit: ", scalar(keys @recipes_wo_unit), "\n";
 
-# my $recipe_wo_unit = $recipes_wo_unit[0];
+my $recipe_wo_unit = $recipes_wo_unit[0];
 
-# ### How does a row in the ingredients table look (wo and w unit)?
+### How does a row in the ingredients table look (wo and w unit)?
 
-# $sth = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, [$recipe_wo_unit]);
+$sth = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, [$recipe_wo_unit]);
 
-# while (my $ing = $sth->fetchrow_hashref()) {
+while (my $ing = $sth->fetchrow_hashref()) {
 
-#   print STDERR Dumper($ing);
-
-
-#   if ($ing->{'unit'}) {
-#     print STDERR "unit defined\n";
-#   } else {
-#     print STDERR "unit not defined\n";
-#   }
-# }
+  print STDERR "Recipe id $ing->{recipe_id}, item: $ing->{item}, unit: ";
+  
+  
+  if ($ing->{'unit'}) {
+    print STDERR "$ing->{unit}\n";
+  } else {
+    print STDERR "not defined\n";
+  }
+}
 
 $dbh->disconnect;
