@@ -134,6 +134,8 @@ sub fetch_some_ingredients
   return $ing_sth;
 }
 
+
+
 sub fetch_ingredients
 {
   my $class = shift;
@@ -270,6 +272,25 @@ sub fetch_recipes_wo_unit
 
 };
 
+sub fetch_some_recipes
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_ids = shift;
+
+# get ingredients and build id -> ingredient hash
+
+  my $recipe_id_string = join(', ', @{ $recipe_ids });
+  my $select_fields = qq(id,title,instructions,modifications,cuisine,rating,description,source,preptime);
+  my $stmt = qq(select $select_fields  from recipe where id in ($recipe_id_string) and deleted=0;); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  return $sth;
+}
 
 
 sub handle_ingredients
@@ -463,6 +484,26 @@ sub fractify {
   return ($h, $k);
 }
 
+sub stringify_db_time
+{
+  my $class = shift;
+
+  ### db_time is a string as returned by strftime('%M', ..., 'unixepoch');
+  my $db_time = shift;
+
+  my $tstring = '';
+
+  unless ($db_time) {
+    return '';
+  }
+
+  if ($db_time eq '00') {
+    return '';
+  }
+
+  return "$db_time minutes";
+  
+}
 
 __END__
 
