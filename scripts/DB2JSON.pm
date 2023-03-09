@@ -360,6 +360,24 @@ sub handle_optional
 
 sub stringify_amounts
 {
+  my $class = shift;
+  my $db_amount = shift;
+  my $db_rangeamount = shift;
+
+  my $amount = $class->float_to_frac($db_amount, 0.02);
+  my $rangeamount = $class->float_to_frac($db_rangeamount, 0.02);
+
+  my $astring = $amount;
+
+  if ($amount and $rangeamount) {
+    my $join_string = '-';
+    if ($db_rangeamount < $db_amount) {
+      $join_string = ' ';
+    }
+    $astring = join($join_string, $amount, $rangeamount);
+  }
+
+  return $astring;
 }
 
 sub float_to_frac {

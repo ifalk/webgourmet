@@ -43,23 +43,9 @@ foreach my $recipe_id (keys %amounts) {
   foreach my $item_id (keys %{ $amounts{$recipe_id} }) {
     print STDERR "   item id: $item_id\n";
     my $db_amount = $amounts{$recipe_id}->{$item_id}->{'amount'};
-    my $amount = Local::Modulino::DB2JSON->float_to_frac($db_amount, 0.02);
     my $db_rangeamount = $amounts{$recipe_id}->{$item_id}->{'rangeamount'};
-    my $rangeamount = Local::Modulino::DB2JSON->float_to_frac($db_rangeamount, 0.02);
 
-    # print STDERR "      db amount: $db_amount\n";
-    # print STDERR "      string   : $amount\n";
-    # print STDERR "      db rangeamount: $db_rangeamount\n";
-    # print STDERR "      string        : $rangeamount\n\n";
-
-    my $astring = $amount;
-    if ($amount and $rangeamount) {
-      my $join_string = '-';
-      if ($db_rangeamount < $db_amount) {
-	$join_string = ' ';
-      }
-      $astring = join($join_string, $amount, $rangeamount);
-    }
+    my $astring = Local::Modulino::DB2JSON->stringify_amounts($db_amount, $db_rangeamount);
     print STDERR "      amount/rangeamount string: $astring\n";
   }
 }
