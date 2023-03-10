@@ -401,6 +401,33 @@ sub stringify_amounts
   return $astring;
 }
 
+sub stringify_yields
+{
+  my $class = shift;
+  my $db_servings = shift;
+  my $db_yields = shift;
+  my $yield_unit = shift;
+  unless ($yield_unit) {
+    $yield_unit = '';
+  };
+
+  my $servings = $class->float_to_frac($db_servings, 0.02);
+  my $yields = $class->float_to_frac($db_yields, 0.02);
+
+  my $yield_string = '';
+
+  if ($servings) {
+    $yield_string = "$servings servings";
+  }
+
+  if ($yields) {
+    $yield_string = join(' ', $yields, $yield_unit); 
+  }
+
+  return $yield_string;
+}
+
+
 sub float_to_frac {
   my $class = shift;
   my $n = shift;
