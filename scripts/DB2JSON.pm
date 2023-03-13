@@ -420,6 +420,10 @@ sub stringify_yields
     $yield_string = "$servings servings";
   }
 
+  unless ($yield_unit) {
+    return $yields;
+  }
+
   if ($yields) {
     $yield_string = join(' ', $yields, $yield_unit); 
   }
