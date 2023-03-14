@@ -46,38 +46,10 @@ while (my ($id, $title, $db_preptime) = $sth->fetchrow()) {
 
   is ($time_string, $test_recipe_ids{$id}->[0], "id $id, preptime $test_recipe_ids{$id}->[0],  $test_recipe_ids{$id}->[1]");
   
-  # print STDERR "$id, $title: $yield_string\n";
-  
 }
 
 $dbh->disconnect();
 
 
 
-# my $stmt = qq(select distinct strftime('%H:%M', preptime, 'unixepoch') from recipe;);
-# my $sth = $dbh->prepare($stmt);
 
-# my $rv = $sth->execute() or die $DBI::errstr;
-# if($rv < 0) {
-#   print $DBI::errstr;
-# }
-
-# print STDERR "Distinct preptimes:\n";
-# while (my ($db_preptime) = $sth->fetchrow()) {
-#   print STDERR Local::Modulino::DB2JSON->stringify_db_time($db_preptime), "\n";
-# }
-
-# $stmt = qq(select distinct strftime('%H:%M', preptime, 'unixepoch') from recipe;);
-# $sth = $dbh->prepare($stmt);
-
-# $rv = $sth->execute() or die $DBI::errstr;
-# if($rv < 0) {
-#   print $DBI::errstr;
-# }
-
-# print STDERR "Distinct cooktimes:\n";
-# while (my ($db_cooktime) = $sth->fetchrow()) {
-#   print STDERR Local::Modulino::DB2JSON->stringify_db_time($db_cooktime), "\n";
-# }
-
-# $dbh->disconnect();

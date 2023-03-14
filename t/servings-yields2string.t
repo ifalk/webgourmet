@@ -3,7 +3,7 @@ use DB2JSON;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
-### check how to render time values from database
+### check how to render servings/yields values from database
 
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
