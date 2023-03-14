@@ -519,20 +519,38 @@ sub stringify_db_time
 {
   my $class = shift;
 
-  ### db_time is a string as returned by strftime('%M', ..., 'unixepoch');
+  ### db_time is a string as returned by strftime('%H:%M', ..., 'unixepoch');
   my $db_time = shift;
+
 
   my $tstring = '';
 
-  unless ($db_time) {
-    return '';
+  unless ($db_time) { return $tstring; };
+
+  my ($db_hours, $db_minutes) = split(':', $db_time);
+
+  my $hours = $db_hours =~ s{^0+}{}r;
+  my $min = $db_minutes =~ s{^0+}{}r;
+
+  # print STDERR "db hours: $db_hours, converted: $hours\n";
+  # print STDERR "db_min: $db_minutes, converted: $min\n";
+
+  unless ($hours) {
+    if ($min) {
+      return "$min min";
+    } else {
+      return '';
+    }
   }
 
-  if ($db_time eq '00') {
-    return '';
+
+  $tstring = "$hours h";
+
+  unless ($min) {
+    return $tstring;
   }
 
-  return "$db_time minutes";
+  return "$tstring $min min";
   
 }
 
