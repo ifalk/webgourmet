@@ -554,5 +554,22 @@ sub stringify_db_time
   
 }
 
+sub stringify_db_rating
+{
+  my $class = shift;
+
+  ### db_rating  is an integer, which is null or at least 1 and at most 10.
+  
+  my $db_rating = shift;
+
+
+  my $rstring = '';
+
+  unless ($db_rating) { return $rstring; };
+
+  $rstring = $db_rating / 2;
+  return "$rstring/5 Sterne";
+}
+
 __END__
 
