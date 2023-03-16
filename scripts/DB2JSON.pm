@@ -566,6 +566,7 @@ sub stringify_db_rating
   my $rstring = '';
 
   unless ($db_rating) { return $rstring; };
+  if ($db_rating > 10) { return '' }; # rating not valid
 
   $rstring = $db_rating / 2;
   return "$rstring/5 Sterne";
