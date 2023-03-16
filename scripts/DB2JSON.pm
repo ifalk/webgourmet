@@ -572,5 +572,44 @@ sub stringify_db_rating
   return "$rstring/5 Sterne";
 }
 
+sub stringify_source_link
+{
+  my $class = shift;
+
+  ### 
+  my $db_source = shift;
+  my $db_link = shift;
+
+  my $sstring = '';
+  my $lstring = '';
+
+  unless ($db_source or $db_link) {
+    return ($sstring, $lstring);
+  }
+
+  unless ($db_source) {
+    return ($sstring, "$db_link");
+  }
+
+  if ($db_link) {
+    $lstring = "$db_link";
+  }
+
+  if ($db_source =~ m/^http/) {
+    if ($db_link) {
+      if ("$db_source" eq "$db_link") {
+	return ('', $lstring);
+      } else {
+	return ("$db_source", $lstring);
+      }
+    } else {
+      return ("$db_source", "$db_source");
+    }
+  } else {
+    return ("$db_source", "$lstring"); 
+  }
+
+}
+
 __END__
 
