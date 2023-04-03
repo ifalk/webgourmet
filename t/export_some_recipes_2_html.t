@@ -130,6 +130,7 @@ my %cols2labels = (
   'category' => 'Kategorie',
   'cuisine' => 'Küche',
   'source' => 'Quelle',
+  'last_modified' => 'Letzte Änderung',
   );
 
 my %cols2itemprops = (
@@ -176,6 +177,18 @@ if (my $link = $recipe_hash->{$id}->{'link'}) {
   $a->appendText("Originalseite: $link");
 
   $div->appendChild($a);
+}
+
+if ($recipe_hash->{$id}->{'last_modified'}) {
+  $p = $doc->createElement('p');
+  $p->setAttribute('class', 'source');
+  $span = $doc->createElement('span');
+  $span->setAttribute('class', 'label');
+  $span->appendText("$cols2labels{'last_modified'}:");
+  $p->appendChild($span);
+  $p->appendText(" $recipe_hash->{$id}->{'last_modified'}");
+
+  $div->appendChild($p);
 }
 
 
