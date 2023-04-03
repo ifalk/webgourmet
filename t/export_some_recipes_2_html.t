@@ -12,6 +12,7 @@ my $database = 'tests/recipes.db';
 my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
 
 my $test_ids = [
+  '1185', # recipe w/ optional ingredients
   '1877', # recipe w/ image
   '1013', 
  '92',   # recipe w/o image, w/ link, cuisine
@@ -190,31 +191,16 @@ if ($ingredient_hash->{$id}) {
   $h->appendText('Zutaten');
   $ing_div->appendChild($h);
 
-  my $ul = $doc->createElement('ul');
-  $ul->setAttribute('class', 'ing');
-
-  my %li_att_name_value = (
-    'class' => 'ing',
-    'itemprop' => 'ingredients'
-    );
 
   my $ing_ref = $ingredient_hash->{$id};
-  foreach my $subgroup (keys %{ $ing_ref }) {
-    foreach my $ing_name (keys %{ $ing_ref->{$subgroup} }) {
-      my @comp = @{ $ing_ref->{$subgroup}->{$ing_name} }{ qw(amount unit) };
 
-      my $ing_string = join(' ', @comp, $ing_name);
-      my $li = $doc->createElement('li');
-      foreach my $att_name (keys %li_att_name_value) {
-	$li->setAttribute($att_name, $li_att_name_value{$att_name});
-      }
-      $li->appendText($ing_string);
-      if ($subgroup eq 'none') {
-	$ul->appendChild($li);
-      };
-    }
+  if ($ing_ref->{'none'}) {
+    my $ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, 'none', $doc);
+    $ing_div->appendChild($ul);
   }
-  $ing_div->appendChild($ul);
+
+  my @subgroups = keys %{ $ing_ref };
+
   $r_div->appendChild($ing_div);
 
   

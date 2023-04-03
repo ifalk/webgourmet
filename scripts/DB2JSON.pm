@@ -8,6 +8,7 @@ use strict;
 use English;
 
 use Data::Types qw(:all);
+use List::MoreUtils qw(each_array);
 
 use Data::Dumper;
 use Carp;
@@ -124,14 +125,52 @@ sub fetch_some_ingredients
 # get ingredients and build id -> ingredient hash
 
   my $recipe_id_string = join(', ', @{ $recipe_ids });
-  my $ing_stmt = qq(select * from ingredients where recipe_id in ($recipe_id_string);); 
-  my $ing_sth = $dbh->prepare( $ing_stmt);
-  my $rv = $ing_sth->execute() or die $DBI::errstr;
+
+  my $select_fields = qq(recipe_id,refid,unit,amount,rangeamount,item,ingkey,optional,inggroup);
+
+  my $stmt = qq(select $select_fields from ingredients where recipe_id in ($recipe_id_string) and deleted=0;); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
   if($rv < 0) {
     print $DBI::errstr;
   }
 
-  return $ing_sth;
+  my $ing_hash = {};
+
+  while (my $ing_list = $sth->fetchrow_hashref()) {
+
+    my $recipe_id = $ing_list->{recipe_id};
+
+    my $item = $ing_list->{item};
+
+    my $unit = $ing_list->{unit};
+    my $amount = $class->stringify_amounts($ing_list->{amount}, $ing_list->{rangeamount});
+    my $optional = $ing_list->{optional};
+    my $ingkey = $ing_list->{ingkey};
+
+    my $ing_group = $ing_list->{inggroup};
+    unless ($ing_group) {
+      $ing_group = 'none';
+    }
+
+    my %fields = (
+      'unit' => $unit,
+      'amount' => $amount,
+      'optional' => $optional,
+      'ingkey' => $ingkey
+    );
+
+
+    while ( my ($key, $value) = each(%fields) ) {
+      $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{$key} = $value;
+    };
+
+    if ($unit and ($unit eq 'recipe')) {
+      $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
+    }
+  }
+
+  return $ing_hash;
 }
 
 
@@ -281,7 +320,8 @@ sub fetch_some_recipes
 # get ingredients and build id -> ingredient hash
 
   my $recipe_id_string = join(', ', @{ $recipe_ids });
-  my $select_fields = qq(id,title,instructions,modifications,cuisine,rating,description,source,preptime);
+  my $select_fields = qq(id,title,instructions,modifications,cuisine,rating,source,strftime('%H:%M', preptime, 'unixepoch'),strftime('%H:%M', cooktime, 'unixepoch'),servings,link,date(last_modified, 'unixepoch'),yields,yield_unit,image);
+  my @col_names = qw(title instructions modifications cuisine rating source preptime cooktime servings link last_modified yields yield_unit image);
   my $stmt = qq(select $select_fields  from recipe where id in ($recipe_id_string) and deleted=0;); 
   my $sth = $dbh->prepare( $stmt);
   my $rv = $sth->execute() or die $DBI::errstr;
@@ -289,7 +329,149 @@ sub fetch_some_recipes
     print $DBI::errstr;
   }
 
-  return $sth;
+  my $recipe_hash = {};
+
+  while (my @col_values = $sth->fetchrow()) {
+    my $id = shift(@col_values); # remove value for 'id'
+
+    my $col_hash={};
+    my $ea = each_array(@col_names, @col_values);
+    while (my ($col_name, $col_value) = $ea->()) {
+      $col_hash->{$col_name} = $col_value;
+    }
+
+    ### these fields are just copied
+    foreach my $col_name (qw(title instructions modifications cuisine last_modified image)) {
+      $recipe_hash->{$id}->{$col_name} = $col_hash->{$col_name};
+    }
+
+    ### strings for times
+    foreach my $time (qw(preptime cooktime)) {
+      $recipe_hash->{$id}->{$time} = $class->stringify_db_time($col_hash->{$time});
+    }
+
+
+    ### strings for yields
+    $recipe_hash->{$id}->{yields} = $class->stringify_yields($col_hash->{servings}, $col_hash->{yields}, $col_hash->{yield_unit});
+
+    ### string for rating
+    $recipe_hash->{$id}->{rating} = $class->stringify_db_rating($col_hash->{rating});
+
+    ### strings for source and link
+    my ($source, $link) = $class->stringify_source_link($col_hash->{source}, $col_hash->{link});
+    $recipe_hash->{$id}->{source} = $source;
+    $recipe_hash->{$id}->{link} = $link;
+    
+  }
+  
+  return $recipe_hash;
+}
+
+sub fetch_some_categories
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_ids = shift;
+  my $recipe_hash = shift;
+
+  # get categories and build id -> categories hash
+
+  my $recipe_id_string = join(', ', @{ $recipe_ids });
+
+  my $select_fields = qq(recipe_id,category);
+
+  my $stmt = qq(select $select_fields from categories where recipe_id in ($recipe_id_string)); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $cat_hash = {};
+
+  while (my ($recipe_id, $category) = $sth->fetchrow()) {
+    $cat_hash->{$recipe_id}->{$category}++;
+  }
+
+  ### if recipe hash is given update it with categories and return it
+  if ($recipe_hash) {
+    foreach my $id (keys %{ $cat_hash }) {
+      my $cat_string = join(', ', keys %{ $cat_hash->{$id} });
+      $recipe_hash->{$id}->{'category'} = $cat_string;
+    }
+    return $recipe_hash;
+  }
+  
+  return $cat_hash;
+  
+}
+
+sub fetch_some_images
+  ### gets images for given ids from database
+  ### saves them as pic_dir/id.jpg
+  ### returns a reference to a hash: id -> saved image file
+  ### parameters
+  ### 1. database handle
+  ### 2. recipe ids for which to get images (array ref)
+  ### 3. optional: pic_dir, directory where to save images (created if it doesn't exist
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_ids = shift;
+  my $pic_dir = shift;
+
+
+  die 'Need recipe ids (2nd par) for this function' unless $recipe_ids;
+  unless ($pic_dir) {
+    $pic_dir = 'pics';
+  }
+  
+  
+  my $recipe_id_string = join(', ', @{ $recipe_ids });
+
+  my $select_fields = qq(id,image);
+
+  my $stmt = qq(select $select_fields from recipe where id in ($recipe_id_string)); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+
+
+  my %id2image;
+
+  while (my ($id, $img) = $sth->fetchrow()) {
+    if ($img) {
+      $id2image{$id} = $img;
+    }
+  }
+
+  $dbh->disconnect();
+
+  my $img_nbr = scalar(keys %id2image);
+
+  my $id2img_file = {};
+  unless ($img_nbr) { return $id2img_file };
+
+  use File::Path qw(make_path);
+  eval { make_path($pic_dir) };
+  if ($@) {
+    die "Couldn't create $pic_dir: $@";
+  }
+
+  foreach my $id (keys %id2image) {
+    my $img_file = "$pic_dir/$id.jpg";
+    open my $fh, '>', $img_file or die $!;
+    binmode $fh;
+    print $fh $id2image{$id};
+    close $fh;
+
+    $id2img_file->{$id} = $img_file;
+  }
+
+  return $id2img_file;
 }
 
 
@@ -335,49 +517,6 @@ sub handle_ingredients
 
   return $recipes_ing;
 };
-
-sub handle_inggroup
-{
-  my $class = shift;
-  my $inggroup = shift;
-
-  if ($inggroup) {
-    return $inggroup;
-  } else {
-    return 'none';
-  }
-
-};
-
-sub handle_unit
-{
-  my $class = shift;
-  my $unit = shift;
-
-  return $unit;
-}
-
-sub handle_amount
-{
-  my $class = shift;
-  my $amount = shift;
-
-  return $amount;
-}
-
-sub handle_optional
-{
-  my $class = shift;
-  my $optional = shift;
-
-  if ($optional) {
-    $optional = 1;
-  } else {
-    $optional = 0;
-  }
-
-  return $optional;
-}
 
 sub stringify_amounts
 {
@@ -609,6 +748,52 @@ sub stringify_source_link
     return ("$db_source", "$lstring"); 
   }
 
+}
+
+sub ingredient_subgroup_2_html
+  #### build html ul Element for ingredient subgroup
+  #### return this ul Element
+{
+  my $class = shift;
+  my $ingredient_hash = shift;
+  my $id = shift;
+  my $subgroup = shift; # default = 'none'
+  my $doc = shift;
+
+  unless ($ingredient_hash) { die "Argument missing: ingredient hash\n" };
+  unless ($id) { die "Argument missing: recipe id\n" };
+  unless ($subgroup) { $subgroup = 'none' };
+  unless ($doc) { die "Argument missing: html document element (needed to create ul)\n" };
+
+  my $ing_ref = $ingredient_hash->{$id};
+  unless ($ing_ref->{$subgroup}) {
+    die "There is no subgroup $subgroup for id $id\n";
+  }
+
+  my $ul = $doc->createElement('ul');
+  $ul->setAttribute('class', 'ing');
+
+  my %li_att_name_value = (
+    'class' => 'ing',
+    'itemprop' => 'ingredients'
+    );
+
+  foreach my $ing_name (keys %{ $ing_ref->{$subgroup} }) {
+    my @comp = @{ $ing_ref->{$subgroup}->{$ing_name} }{ qw(amount unit) };
+
+    my $ing_string = join(' ', @comp, $ing_name);
+    if ($ing_ref->{$subgroup}->{$ing_name}->{'optional'}) {
+      $ing_string = "$ing_string (optional)";
+    }
+    my $li = $doc->createElement('li');
+    foreach my $att_name (keys %li_att_name_value) {
+      $li->setAttribute($att_name, $li_att_name_value{$att_name});
+    }
+    $li->appendText($ing_string);
+    $ul->appendChild($li);
+  }
+
+  return $ul;
 }
 
 __END__
