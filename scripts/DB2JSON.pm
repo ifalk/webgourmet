@@ -160,14 +160,19 @@ sub fetch_some_ingredients
       'ingkey' => $ingkey
     );
 
+    my $item_hash;
 
     while ( my ($key, $value) = each(%fields) ) {
-      $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{$key} = $value;
+      # $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{$key} = $value;
+      $item_hash->{$key} = $value;
     };
 
     if ($unit and ($unit eq 'recipe')) {
-      $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
+      # $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
+      $item_hash->{'refid'} = $ing_list->{'refid'};
     }
+
+    push(@{ $ing_hash->{$recipe_id}->{$ing_group} }, [ $item => $item_hash ]);
   }
 
   return $ing_hash;
@@ -317,7 +322,7 @@ sub fetch_some_recipes
   my $dbh = shift;
   my $recipe_ids = shift;
 
-# get ingredients and build id -> ingredient hash
+# get recipe description and build id -> description hash
 
   my $recipe_id_string = join(', ', @{ $recipe_ids });
   my $select_fields = qq(id,title,instructions,modifications,cuisine,rating,source,strftime('%H:%M', preptime, 'unixepoch'),strftime('%H:%M', cooktime, 'unixepoch'),servings,link,date(last_modified, 'unixepoch'),yields,yield_unit,image);
@@ -778,11 +783,13 @@ sub ingredient_subgroup_2_html
     'itemprop' => 'ingredients'
     );
 
-  foreach my $ing_name (keys %{ $ing_ref->{$subgroup} }) {
-    my @comp = @{ $ing_ref->{$subgroup}->{$ing_name} }{ qw(amount unit) };
+
+  foreach my $ing (@{ $ing_ref->{$subgroup} }) {
+    my ($ing_name, $ing_atts) = @{ $ing };
+    my @comp = @{ $ing_atts }{ qw(amount unit) };
 
     my $ing_string = join(' ', @comp, $ing_name);
-    if ($ing_ref->{$subgroup}->{$ing_name}->{'optional'}) {
+    if ($ing_atts->{'optional'}) {
       $ing_string = "$ing_string (optional)";
     }
     my $li = $doc->createElement('li');
@@ -792,6 +799,21 @@ sub ingredient_subgroup_2_html
     $li->appendText($ing_string);
     $ul->appendChild($li);
   }
+  
+  # foreach my $ing_name (keys %{ $ing_ref->{$subgroup} }) {
+  #   my @comp = @{ $ing_ref->{$subgroup}->{$ing_name} }{ qw(amount unit) };
+
+  #   my $ing_string = join(' ', @comp, $ing_name);
+  #   if ($ing_ref->{$subgroup}->{$ing_name}->{'optional'}) {
+  #     $ing_string = "$ing_string (optional)";
+  #   }
+  #   my $li = $doc->createElement('li');
+  #   foreach my $att_name (keys %li_att_name_value) {
+  #     $li->setAttribute($att_name, $li_att_name_value{$att_name});
+  #   }
+  #   $li->appendText($ing_string);
+  #   $ul->appendChild($li);
+  # }
 
   return $ul;
 }

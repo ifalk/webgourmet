@@ -40,6 +40,14 @@ my $recipe_wo_unit = $recipes_wo_unit[0];
 ### How does a row in the ingredients table look (wo and w unit)?
 
 $sth = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, [$recipe_wo_unit]);
+my $select_fields = qq(recipe_id,refid,unit,amount,rangeamount,item,ingkey,optional,inggroup);
+
+my $stmt = qq(select $select_fields from ingredients where recipe_id in ($recipe_wo_unit) and deleted=0;); 
+my $sth = $dbh->prepare( $stmt);
+my $rv = $sth->execute() or die $DBI::errstr;
+if($rv < 0) {
+  print $DBI::errstr;
+}
 
 while (my $ing = $sth->fetchrow_hashref()) {
 

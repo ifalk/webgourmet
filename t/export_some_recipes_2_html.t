@@ -194,10 +194,16 @@ if ($ingredient_hash->{$id}) {
 
   my $ing_ref = $ingredient_hash->{$id};
 
+
+  my $ul; 
   if ($ing_ref->{'none'}) {
-    my $ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, 'none', $doc);
-    $ing_div->appendChild($ul);
+    $ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, 'none', $doc);
+  } else {
+    $ul = $doc->createElement('ul');
+    $ul->setAttribute('class', 'ing');
   }
+
+  $ing_div->appendChild($ul);
 
   my @subgroups = keys %{ $ing_ref };
 

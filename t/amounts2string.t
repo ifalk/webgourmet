@@ -25,7 +25,17 @@ my %test_amounts = (
 
 
 
-my $sth = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, [keys %test_amounts]);
+my $recipe_id_string = join(', ', keys %test_amounts);
+
+my $select_fields = qq(recipe_id,refid,unit,amount,rangeamount,item,ingkey,optional,inggroup);
+
+my $stmt = qq(select $select_fields from ingredients where recipe_id in ($recipe_id_string) and deleted=0;); 
+my $sth = $dbh->prepare( $stmt);
+my $rv = $sth->execute() or die $DBI::errstr;
+if($rv < 0) {
+  print $DBI::errstr;
+}
+
 
 my %amounts;
 
