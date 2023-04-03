@@ -12,6 +12,7 @@ my $database = 'tests/recipes.db';
 my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
 
 my $test_ids = [
+  '246', # recipe w/ ingredient subgroups
   '1185', # recipe w/ optional ingredients
   '1877', # recipe w/ image
   '1013', 
@@ -211,14 +212,26 @@ if ($ingredient_hash->{$id}) {
   my $ul; 
   if ($ing_ref->{'none'}) {
     $ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, 'none', $doc);
+    delete( $ing_ref->{'none'} );
   } else {
     $ul = $doc->createElement('ul');
     $ul->setAttribute('class', 'ing');
   }
 
-  $ing_div->appendChild($ul);
+  foreach my $subgroup (keys %{ $ing_ref }) {
+    
+    my $li = $doc->createElement('li');
+    $li->setAttribute('class', 'inggroup');
+    $li->appendText("$subgroup:");
+    
+    my $sub_ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, $subgroup, $doc);
+    $li->appendChild($sub_ul);
 
-  my @subgroups = keys %{ $ing_ref };
+    $ul->appendChild($li);
+  }
+  
+
+  $ing_div->appendChild($ul);
 
   $r_div->appendChild($ing_div);
 

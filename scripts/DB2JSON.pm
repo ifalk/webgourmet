@@ -800,21 +800,6 @@ sub ingredient_subgroup_2_html
     $ul->appendChild($li);
   }
   
-  # foreach my $ing_name (keys %{ $ing_ref->{$subgroup} }) {
-  #   my @comp = @{ $ing_ref->{$subgroup}->{$ing_name} }{ qw(amount unit) };
-
-  #   my $ing_string = join(' ', @comp, $ing_name);
-  #   if ($ing_ref->{$subgroup}->{$ing_name}->{'optional'}) {
-  #     $ing_string = "$ing_string (optional)";
-  #   }
-  #   my $li = $doc->createElement('li');
-  #   foreach my $att_name (keys %li_att_name_value) {
-  #     $li->setAttribute($att_name, $li_att_name_value{$att_name});
-  #   }
-  #   $li->appendText($ing_string);
-  #   $ul->appendChild($li);
-  # }
-
   return $ul;
 }
 
