@@ -179,16 +179,48 @@ if (my $link = $recipe_hash->{$id}->{'link'}) {
 
 
 $r_div->appendChild($div);
-$body->appendChild($r_div);
 
 ############# ingredients ###################
-# my $ing_div = $doc->createElement('div');
-# $ing_div->setAttribute('class', 'ing');
+if ($ingredient_hash->{$id}) {
 
-# my $ul = $doc->createElement('ul');
-# $ul->setAttribute('class', 'ing');
+  my $ing_div = $doc->createElement('div');
+  $ing_div->setAttribute('class', 'ing');
 
+  my $h = $doc->createElement('h3');
+  $h->appendText('Zutaten');
+  $ing_div->appendChild($h);
 
+  my $ul = $doc->createElement('ul');
+  $ul->setAttribute('class', 'ing');
+
+  my %li_att_name_value = (
+    'class' => 'ing',
+    'itemprop' => 'ingredients'
+    );
+
+  my $ing_ref = $ingredient_hash->{$id};
+  foreach my $subgroup (keys %{ $ing_ref }) {
+    foreach my $ing_name (keys %{ $ing_ref->{$subgroup} }) {
+      my @comp = @{ $ing_ref->{$subgroup}->{$ing_name} }{ qw(amount unit) };
+
+      my $ing_string = join(' ', @comp, $ing_name);
+      my $li = $doc->createElement('li');
+      foreach my $att_name (keys %li_att_name_value) {
+	$li->setAttribute($att_name, $li_att_name_value{$att_name});
+      }
+      $li->appendText($ing_string);
+      if ($subgroup eq 'none') {
+	$ul->appendChild($li);
+      };
+    }
+  }
+  $ing_div->appendChild($ul);
+  $r_div->appendChild($ing_div);
+
+  
+}
+
+$body->appendChild($r_div);
 
 
 ####
