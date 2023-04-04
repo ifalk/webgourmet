@@ -150,7 +150,53 @@ sub get_max_id
   return $max_id;
 }
 
+sub get_recipes_involved
+  #### returns additional involved recipes
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_ids = shift;
 
+  my $recipe_id_string = join(', ', @{ $recipe_ids });
+
+  my %recipe_hash;
+  foreach my $id (@{ $recipe_ids }) {
+    $recipe_hash{$id}++;
+  }
+  
+  my $stmt = qq(select recipe_id,refid from ingredients where recipe_id in ($recipe_id_string) and deleted=0 and refid is not null;);
+
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $recipes_found = [];
+  my $more_recipes = 1;
+  while ($more_recipes) {
+    my %more_recipes_found;
+    while (my ($recipe_id, $refid) = $sth->fetchrow()) {
+      unless ($recipe_hash{$refid}) {
+	$more_recipes_found{$refid}++;
+	$recipe_hash{$refid}++;
+	push(@{ $recipes_found }, $refid);
+      }
+    }
+
+    if (%more_recipes_found) {
+      my $more_recipes = $class->get_recipes_involved($dbh, $recipes_found);
+      foreach my $rid (@{ $more_recipes }) {
+	unless ($recipe_hash{$rid}) { push(@{ $recipes_found }, $rid); };
+	$recipe_hash{$rid}++;
+      }	
+    } else {
+      $more_recipes=0;
+    }	
+
+  }
+  return $recipes_found;
+}
 
 sub fetch_some_ingredients
 {

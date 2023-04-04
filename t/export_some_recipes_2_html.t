@@ -13,7 +13,9 @@ my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
 
 my $test_ids = [
   '1302', # recipe w/ othter recipe as ingredient
-  '1301', # refered by 1302
+#  '1301', # refered by 1302
+  '1305', # also refers to 1301
+  '175',  # refers to 40
   '246', # recipe w/ ingredient subgroups
   '1185', # recipe w/ optional ingredients
   '1877', # recipe w/ image
@@ -22,6 +24,11 @@ my $test_ids = [
   '1485', # recipe w/o image, link, cuisine
   # w/ yield, preptime, cooktime, category, rating, source
   ];
+
+my $add_recipes_needed = Local::Modulino::DB2JSON->get_recipes_involved($dbh, $test_ids);
+push (@{ $test_ids }, @{ $add_recipes_needed });
+print STDERR "All recipes needed: ", join(', ', @{ $test_ids }), "\n";
+
 
 my $recipe_hash = Local::Modulino::DB2JSON->fetch_some_recipes($dbh, $test_ids);
 # print STDERR Dumper($recipe_hash);
