@@ -12,7 +12,7 @@ my $database = 'tests/recipes.db';
 my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
 
 my $test_ids = [
-  '1302', # recipe w/ othter recipe as ingredient
+  '1302', # recipe w/ other recipe as ingredient
 #  '1301', # refered by 1302
   '1305', # also refers to 1301
   '175',  # refers to 40
@@ -33,7 +33,7 @@ print STDERR "All recipes needed: ", join(', ', @{ $test_ids }), "\n";
 my $recipe_hash = Local::Modulino::DB2JSON->fetch_some_recipes($dbh, $test_ids);
 # print STDERR Dumper($recipe_hash);
 
-my $ingredient_hash = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, $test_ids);
+my $ingredient_hash = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, $test_ids, $recipe_hash);
 
 $recipe_hash = Local::Modulino::DB2JSON->fetch_some_categories($dbh, $test_ids, $recipe_hash);
 

@@ -203,6 +203,7 @@ sub fetch_some_ingredients
   my $class = shift;
   my $dbh = shift;
   my $recipe_ids = shift;
+  my $recipe_hash = shift; # needed to find out titles of referred to recipes (for html exports)
 
 # get ingredients and build id -> ingredient hash
 
@@ -250,8 +251,13 @@ sub fetch_some_ingredients
     };
 
     if ($unit and ($unit eq 'recipe')) {
+      my $refid = $ing_list->{'refid'};
+      if ($recipe_hash and $recipe_hash->{$refid}) {
+	my $reftitle = $recipe_hash->{$refid}->{'title'};
+	$refid = "$reftitle$refid.html";
+      }
       # $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
-      $item_hash->{'refid'} = $ing_list->{'refid'};
+      $item_hash->{'refid'} = $refid;
     }
 
     push(@{ $ing_hash->{$recipe_id}->{$ing_group} }, [ $item => $item_hash ]);
@@ -876,7 +882,14 @@ sub ingredient_subgroup_2_html
     foreach my $att_name (keys %li_att_name_value) {
       $li->setAttribute($att_name, $li_att_name_value{$att_name});
     }
-    $li->appendText($ing_string);
+    if ($comp[1] eq 'recipe') {
+      my $a = $doc->createElement('a');
+      $a->setAttribute('href', $ing_atts->{'refid'});
+      $a->appendText($ing_string);
+      $li->appendChild($a);
+    } else {
+      $li->appendText($ing_string);
+    }
     $ul->appendChild($li);
   }
   
