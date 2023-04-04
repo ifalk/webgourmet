@@ -116,6 +116,42 @@ sub get_db_handle
   return $dbh;
 }
 
+sub get_number_of_recipes
+{
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select count(id) from recipe where deleted = 0);
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $result = $sth->fetchall_arrayref();
+  my $nbr_recipes = $result->[0]->[0];
+  return $nbr_recipes;
+}
+
+sub get_max_id
+{
+  my $class = shift;
+  my $dbh = shift;
+
+  my $stmt = qq(select max(id) from recipe);
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $result = $sth->fetchall_arrayref();
+  my $max_id = $result->[0]->[0];
+  return $max_id;
+}
+
+
+
 sub fetch_some_ingredients
 {
   my $class = shift;
@@ -452,8 +488,6 @@ sub fetch_some_images
       $id2image{$id} = $img;
     }
   }
-
-  $dbh->disconnect();
 
   my $img_nbr = scalar(keys %id2image);
 

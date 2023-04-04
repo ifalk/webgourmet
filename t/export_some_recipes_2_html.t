@@ -12,6 +12,8 @@ my $database = 'tests/recipes.db';
 my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
 
 my $test_ids = [
+  '1302', # recipe w/ othter recipe as ingredient
+  '1301', # refered by 1302
   '246', # recipe w/ ingredient subgroups
   '1185', # recipe w/ optional ingredients
   '1877', # recipe w/ image
@@ -34,6 +36,9 @@ my $img_nbr = scalar(keys %{ $id2image_file });
 print STDERR "Number of saved images: $img_nbr\n";
 print STDERR Dumper($id2image_file);
 
+my $max_rid = Local::Modulino::DB2JSON->get_max_id($dbh);
+print STDERR "Max recipe id: $max_rid\n";
+
 $dbh->disconnect();
 
 ### create html documents for given ids
@@ -43,7 +48,8 @@ my $title = $recipe_hash->{$id}->{'title'};
 print STDERR "id: $id, title: $title\n";
 
 #### Where to save the html file to
-my $file_name = "tests/$title$id.html";
+my $html_dir = 'tests';
+my $file_name = "$html_dir/$title$id.html";
 #### picture directory in html file: has to be relative to where the html file is
 my $rel_picdir = 'pics';
 
@@ -132,6 +138,7 @@ my %cols2labels = (
   'cuisine' => 'Küche',
   'source' => 'Quelle',
   'last_modified' => 'Letzte Änderung',
+  'recipe_id' => 'Rezept Nr.',
   );
 
 my %cols2itemprops = (
@@ -182,7 +189,7 @@ if (my $link = $recipe_hash->{$id}->{'link'}) {
 
 if ($recipe_hash->{$id}->{'last_modified'}) {
   $p = $doc->createElement('p');
-  $p->setAttribute('class', 'source');
+  $p->setAttribute('class', 'last_modified');
   $span = $doc->createElement('span');
   $span->setAttribute('class', 'label');
   $span->appendText("$cols2labels{'last_modified'}:");
@@ -191,6 +198,16 @@ if ($recipe_hash->{$id}->{'last_modified'}) {
 
   $div->appendChild($p);
 }
+
+$p = $doc->createElement('p');
+$p->setAttribute('class', 'recipe_id');
+$span = $doc->createElement('span');
+$span->setAttribute('class', 'label');
+$span->appendText("$cols2labels{'recipe_id'}:");
+$p->appendChild($span);
+$p->appendText(" $id (max $max_rid)");
+
+$div->appendChild($p);
 
 
 $r_div->appendChild($div);
@@ -207,6 +224,7 @@ if ($ingredient_hash->{$id}) {
 
 
   my $ing_ref = $ingredient_hash->{$id};
+  # print STDERR Dumper($ing_ref);
 
 
   my $ul; 
