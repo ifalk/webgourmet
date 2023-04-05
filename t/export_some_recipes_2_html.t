@@ -89,48 +89,8 @@ $html->appendChild($body);
 my $r_div = Local::Modulino::DB2JSON->make_html_recipe_description($doc, $recipe_hash, $id, $max_rid);
 
 ############# ingredients ###################
-if ($ingredient_hash->{$id}) {
 
-  my $ing_div = $doc->createElement('div');
-  $ing_div->setAttribute('class', 'ing');
-
-  my $h = $doc->createElement('h3');
-  $h->appendText('Zutaten');
-  $ing_div->appendChild($h);
-
-
-  my $ing_ref = $ingredient_hash->{$id};
-  # print STDERR Dumper($ing_ref);
-
-
-  my $ul; 
-  if ($ing_ref->{'none'}) {
-    $ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, 'none', $doc);
-    delete( $ing_ref->{'none'} );
-  } else {
-    $ul = $doc->createElement('ul');
-    $ul->setAttribute('class', 'ing');
-  }
-
-  foreach my $subgroup (keys %{ $ing_ref }) {
-    
-    my $li = $doc->createElement('li');
-    $li->setAttribute('class', 'inggroup');
-    $li->appendText("$subgroup:");
-    
-    my $sub_ul = Local::Modulino::DB2JSON->ingredient_subgroup_2_html($ingredient_hash, $id, $subgroup, $doc);
-    $li->appendChild($sub_ul);
-
-    $ul->appendChild($li);
-  }
-  
-
-  $ing_div->appendChild($ul);
-
-  $r_div->appendChild($ing_div);
-
-  
-}
+$r_div = Local::Modulino::DB2JSON->make_html_recipe_ingredients($doc, $r_div, $ingredient_hash, $id);
 
 ######################################
 ### instructions

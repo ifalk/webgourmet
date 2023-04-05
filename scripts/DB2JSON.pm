@@ -1094,5 +1094,73 @@ sub make_html_recipe_description
   return $r_div;
 }
 
+sub make_html_recipe_ingredients
+  ### make html element containing ingredients
+  ### arguments (required)
+  ###     - document element
+  ###     - div element - to which ingredient elements are to be appended
+  ###     - ingredient hash
+  ###     - recipe id
+  ### returns
+  ###    div element - with added ingredient elements
+{
+  my $class = shift;
+  my $doc = shift;
+  my $r_div = shift;
+  my $ingredient_hash = shift;
+  my $id = shift;
+
+  unless ($doc) { die 'Argument missing: html document element' };
+  unless ($r_div) { die 'Argument missing: recipe div element' };
+  unless ($ingredient_hash) { die 'Argument missing: ingredient hash' };
+  unless ($id) { die 'Argument missing: recipe id' };
+
+  if ($ingredient_hash->{$id}) {
+
+    my $ing_div = $doc->createElement('div');
+    $ing_div->setAttribute('class', 'ing');
+
+    my $h = $doc->createElement('h3');
+    $h->appendText('Zutaten');
+    $ing_div->appendChild($h);
+
+
+    my $ing_ref = $ingredient_hash->{$id};
+    # print STDERR Dumper($ing_ref);
+
+
+    my $ul; 
+    if ($ing_ref->{'none'}) {
+      $ul = $class->ingredient_subgroup_2_html($ingredient_hash, $id, 'none', $doc);
+      delete( $ing_ref->{'none'} );
+    } else {
+      $ul = $doc->createElement('ul');
+      $ul->setAttribute('class', 'ing');
+    }
+
+    foreach my $subgroup (keys %{ $ing_ref }) {
+      
+      my $li = $doc->createElement('li');
+      $li->setAttribute('class', 'inggroup');
+      $li->appendText("$subgroup:");
+      
+      my $sub_ul = $class->ingredient_subgroup_2_html($ingredient_hash, $id, $subgroup, $doc);
+      $li->appendChild($sub_ul);
+
+      $ul->appendChild($li);
+    }
+    
+
+    $ing_div->appendChild($ul);
+
+    $r_div->appendChild($ing_div);
+
+    
+  }
+  
+  return $r_div;
+
+}
+
 __END__
 
