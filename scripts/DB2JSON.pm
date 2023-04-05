@@ -1162,5 +1162,100 @@ sub make_html_recipe_ingredients
 
 }
 
+sub make_html_recipe_instructions
+  ### make html element containing instructions
+  ### arguments (required)
+  ###     - document element
+  ###     - div element - to which instruction elements are to be appended
+  ###     - recipe hash
+  ###     - recipe id
+  ### returns
+  ###    div element - with added instruction elements
+{
+  my $class = shift;
+  my $doc = shift;
+  my $r_div = shift;
+  my $recipe_hash = shift;
+  my $id = shift;
+
+  unless ($doc) { die 'Argument missing: html document element' };
+  unless ($r_div) { die 'Argument missing: recipe div element' };
+  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
+  unless ($id) { die 'Argument missing: recipe id' };
+
+  if ($recipe_hash->{$id}->{'instructions'}) {
+
+    my $div = $doc->createElement('div');
+    $div->setAttribute('class', 'instructions');
+
+    my $h3 = $doc->createElement('h3');
+    $h3->appendText('Anweisungen');
+    $div->appendChild($h3);
+    
+    my $ins_div = $doc->createElement('div');
+    $ins_div->setAttribute('itemprop', 'recipeInstructions');
+
+    ## split on linux or windows newline chars in string:
+    my @ins_lines = split(/\r?\n/, $recipe_hash->{$id}->{'instructions'});
+
+    foreach my $line (@ins_lines) {
+      my $p = $doc->createElement('p');
+      $p->appendText($line);
+      $ins_div->appendChild($p);
+    }
+    $div->appendChild($ins_div);
+
+    $r_div->appendChild($div);
+  }
+
+  return $r_div;
+}
+
+sub make_html_recipe_modifications
+  ### make html element containing modifications
+  ### arguments (required)
+  ###     - document element
+  ###     - div element - to which modifications elements are to be appended
+  ###     - recipe hash
+  ###     - recipe id
+  ### returns
+  ###    div element - with added modification elements
+{
+  my $class = shift;
+  my $doc = shift;
+  my $r_div = shift;
+  my $recipe_hash = shift;
+  my $id = shift;
+
+  unless ($doc) { die 'Argument missing: html document element' };
+  unless ($r_div) { die 'Argument missing: recipe div element' };
+  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
+  unless ($id) { die 'Argument missing: recipe id' };
+
+  if ($recipe_hash->{$id}->{'modifications'}) {
+
+    my $div = $doc->createElement('div');
+    $div->setAttribute('class', 'modifications');
+
+    my $h3 = $doc->createElement('h3');
+    $h3->appendText('Notizen');
+    $div->appendChild($h3);
+    
+    ## split on linux or windows newline chars in string:
+    my @lines = split(/\r?\n/, $recipe_hash->{$id}->{'modifications'});
+
+    foreach my $line (@lines) {
+      my $p = $doc->createElement('p');
+      $p->appendText($line);
+      $div->appendChild($p);
+    }
+
+    $r_div->appendChild($div);
+  }
+
+  return $r_div;
+}
+
+
 __END__
 

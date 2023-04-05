@@ -48,6 +48,9 @@ foreach my $id (keys %{ $id2image_file }) {
   $recipe_hash->{$id}->{'image_file'} = $id2image_file->{$id};
 }
 
+#### picture directory in html file: has to be relative to where the html file is
+my $rel_picdir = 'pics';
+
 my $max_rid = Local::Modulino::DB2JSON->get_max_id($dbh);
 print STDERR "Max recipe id: $max_rid\n";
 
@@ -61,8 +64,6 @@ print STDERR "id: $id, title: $title\n";
 
 #### Where to save the html file to
 my $file_name = "$html_dir/$title$id.html";
-#### picture directory in html file: has to be relative to where the html file is
-my $rel_picdir = 'pics';
 
 use XML::LibXML;
 
@@ -95,62 +96,15 @@ $r_div = Local::Modulino::DB2JSON->make_html_recipe_ingredients($doc, $r_div, $i
 ######################################
 ### instructions
 
-if ($recipe_hash->{$id}->{'instructions'}) {
-
-  my $div = $doc->createElement('div');
-  $div->setAttribute('class', 'instructions');
-
-  my $h3 = $doc->createElement('h3');
-  $h3->appendText('Anweisungen');
-  $div->appendChild($h3);
-  
-  my $ins_div = $doc->createElement('div');
-  $ins_div->setAttribute('itemprop', 'recipeInstructions');
-
-  ## split on linux or windows newline chars in string:
-  my @ins_lines = split(/\r?\n/, $recipe_hash->{$id}->{'instructions'});
-
-  foreach my $line (@ins_lines) {
-    my $p = $doc->createElement('p');
-    $p->appendText($line);
-    $ins_div->appendChild($p);
-  }
-  $div->appendChild($ins_div);
-
-  $r_div->appendChild($div);
-}
+$r_div = Local::Modulino::DB2JSON->make_html_recipe_instructions($doc, $r_div, $recipe_hash, $id);
 
 
 #################################################################
 ### modifications (i.e. notes)
 
-if ($recipe_hash->{$id}->{'modifications'}) {
-
-  my $div = $doc->createElement('div');
-  $div->setAttribute('class', 'modifications');
-
-  my $h3 = $doc->createElement('h3');
-  $h3->appendText('Notizen');
-  $div->appendChild($h3);
-  
-  ## split on linux or windows newline chars in string:
-  my @lines = split(/\r?\n/, $recipe_hash->{$id}->{'modifications'});
-
-  foreach my $line (@lines) {
-    my $p = $doc->createElement('p');
-    $p->appendText($line);
-    $div->appendChild($p);
-  }
-
-  $r_div->appendChild($div);
-}
-
+$r_div = Local::Modulino::DB2JSON->make_html_recipe_modifications($doc, $r_div, $recipe_hash, $id);
 
 $body->appendChild($r_div);
-
-
-####
-
 
 $html->appendChild($body);
 
