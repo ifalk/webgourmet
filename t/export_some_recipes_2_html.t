@@ -263,6 +263,35 @@ if ($ingredient_hash->{$id}) {
   
 }
 
+######################################
+### instructions
+
+if ($recipe_hash->{$id}->{'instructions'}) {
+
+  my $div = $doc->createElement('div');
+  $div->setAttribute('class', 'instructions');
+
+  my $h3 = $doc->createElement('h3');
+  $h3->appendText('Anweisungen');
+  $div->appendChild($h3);
+  
+  my $ins_div = $doc->createElement('div');
+  $ins_div->setAttribute('itemprop', 'recipeInstructions');
+
+  ## split on linux or windows newline chars in string:
+  my @ins_lines = split(/\r?\n/, $recipe_hash->{$id}->{'instructions'});
+
+  foreach my $line (@ins_lines) {
+    my $p = $doc->createElement('p');
+    $p->appendText($line);
+    $ins_div->appendChild($p);
+  }
+  $div->appendChild($ins_div);
+
+  $r_div->appendChild($div);
+}
+
+
 $body->appendChild($r_div);
 
 

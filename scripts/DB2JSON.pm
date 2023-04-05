@@ -872,7 +872,16 @@ sub ingredient_subgroup_2_html
 
   foreach my $ing (@{ $ing_ref->{$subgroup} }) {
     my ($ing_name, $ing_atts) = @{ $ing };
-    my @comp = @{ $ing_atts }{ qw(amount unit) };
+
+    my @comp;
+    foreach my $att (qw(amount unit)) {
+      my $att_value = '';
+      if ($ing_atts->{$att}) {
+	$att_value = $ing_atts->{$att};
+      }
+      push(@comp, $att_value);
+    }
+    # my @comp = @{ $ing_atts }{ qw(amount unit) };
 
     my $ing_string = join(' ', @comp, $ing_name);
     if ($ing_atts->{'optional'}) {
