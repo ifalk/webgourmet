@@ -37,11 +37,16 @@ my $ingredient_hash = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, $te
 
 $recipe_hash = Local::Modulino::DB2JSON->fetch_some_categories($dbh, $test_ids, $recipe_hash);
 
-my $pic_dir = 'tests/pics';
+my $html_dir = 'tests';
+my $pic_dir = "$html_dir/pics";
 my $id2image_file = Local::Modulino::DB2JSON->fetch_some_images($dbh, $test_ids, $pic_dir);
 my $img_nbr = scalar(keys %{ $id2image_file });
 print STDERR "Number of saved images: $img_nbr\n";
 print STDERR Dumper($id2image_file);
+### add file names of saved images to $recipe_hash
+foreach my $id (keys %{ $id2image_file }) {
+  $recipe_hash->{$id}->{'image_file'} = $id2image_file->{$id};
+}
 
 my $max_rid = Local::Modulino::DB2JSON->get_max_id($dbh);
 print STDERR "Max recipe id: $max_rid\n";
@@ -55,7 +60,6 @@ my $title = $recipe_hash->{$id}->{'title'};
 print STDERR "id: $id, title: $title\n";
 
 #### Where to save the html file to
-my $html_dir = 'tests';
 my $file_name = "$html_dir/$title$id.html";
 #### picture directory in html file: has to be relative to where the html file is
 my $rel_picdir = 'pics';
@@ -69,33 +73,8 @@ use XML::LibXML;
 # - title from recipe hash
 # - link to stylesheet: style.css
 
-my $version = '1.0';
-my $encoding = 'utf-8';
-my $doc = XML::LibXML::Document->new( $version, $encoding );
+my ($doc, $html) = Local::Modulino::DB2JSON->setup_html_header($title);
 
-my $rootnode = 'html';
-my $public = '-//W3C//DTD XHTML 1.0 Strict//EN';
-my $system = 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd';
-my $dtd = $doc->createInternalSubset( $rootnode, $public, $system);
-
-my $html = $doc->createElementNS('http://www.w3.org/1999/xhtml', 'html');
-
-my $head = $doc->createElement('head');
-
-my $meta = $doc->createElement('meta');
-$meta->setAttribute('http-equiv', 'content-type');
-$meta->setAttribute('content', 'text/html; charset=utf-8');
-$head->appendChild($meta);
-
-$head->appendTextChild('title', $title);
-
-my $css_link = $doc->createElement('link');
-$css_link->setAttribute('rel', 'stylesheet');
-$css_link->setAttribute('href', 'style.css');
-$css_link->setAttribute('type', 'text/css');
-$head->appendChild($css_link);
-
-$html->appendChild($head);
 
 ###########################################################
 ### the html body
@@ -107,117 +86,7 @@ $html->appendChild($body);
 #############
 ### recipe header/description
 
-my $r_div = $doc->createElement('div');
-$r_div->setAttribute('class', 'recipe');
-$r_div->setAttribute('itemscope');
-$r_div->setAttribute('itemtype', 'http://schema.org/Recipe');
-
-if ($id2image_file->{"$id"}) {
-  my $img = $doc->createElement('img');
-  $img->setAttribute('src', "$rel_picdir/$id.jpg");
-  $img->setAttribute('itemprop', 'image');
-  $r_div->appendChild($img);
-}  
-
-my $div = $doc->createElement('div');
-$div->setAttribute('class', 'header');
-
-my $p = $doc->createElement('p');
-$p->setAttribute('class', 'title');
-
-my $span = $doc->createElement('span');
-$span->setAttribute('class', 'label');
-$span->appendText('Titel:');
-$p->appendChild($span);
-
-$span = $doc->createElement('span');
-$span->setAttribute('itemprop', 'name');
-$span->appendText($title);
-$p->appendChild($span);
-
-$div->appendChild($p);
-
-my %cols2labels = (
-  'yields' => 'Ertrag',
-  'cooktime' => 'Garzeit',
-  'preptime' => 'Zubereitungszeit',
-  'category' => 'Kategorie',
-  'cuisine' => 'Küche',
-  'source' => 'Quelle',
-  'last_modified' => 'Letzte Änderung',
-  'recipe_id' => 'Rezept Nr.',
-  );
-
-my %cols2itemprops = (
-  'yields' => 'recipeYield',
-  'cooktime' => 'cookTime',
-  'preptime' => 'prepTime',
-  'category' => 'recipeCategory',
-  'cuisine' => 'recipeCuisine',
-  );
-
-foreach my $col (qw(yields cooktime preptime category cuisine)) {
-  if ($recipe_hash->{$id}->{$col}) {
-    my $p = $doc->createElement('p');
-    $p->setAttribute('class', $col);
-    my $span = $doc->createElement('span');
-    $span->setAttribute('class', 'label');
-    $span->appendText("$cols2labels{$col}:");
-    $p->appendChild($span);
-    
-    $span = $doc->createElement('span');
-    $span->setAttribute('itemprop', $cols2itemprops{$col});
-    $span->appendText($recipe_hash->{$id}->{$col});
-    $p->appendChild($span);
-
-    $div->appendChild($p);
-  }
-}
-
-if ($recipe_hash->{$id}->{'source'}) {
-  $p = $doc->createElement('p');
-  $p->setAttribute('class', 'source');
-  $span = $doc->createElement('span');
-  $span->setAttribute('class', 'label');
-  $span->appendText("$cols2labels{'source'}:");
-  $p->appendChild($span);
-  $p->appendText(" $recipe_hash->{$id}->{'source'}");
-
-  $div->appendChild($p);
-}
-
-if (my $link = $recipe_hash->{$id}->{'link'}) {
-  $a = $doc->createElement('a');
-  $a->setAttribute('href', $link);
-  $a->appendText("Originalseite: $link");
-
-  $div->appendChild($a);
-}
-
-if ($recipe_hash->{$id}->{'last_modified'}) {
-  $p = $doc->createElement('p');
-  $p->setAttribute('class', 'last_modified');
-  $span = $doc->createElement('span');
-  $span->setAttribute('class', 'label');
-  $span->appendText("$cols2labels{'last_modified'}:");
-  $p->appendChild($span);
-  $p->appendText(" $recipe_hash->{$id}->{'last_modified'}");
-
-  $div->appendChild($p);
-}
-
-$p = $doc->createElement('p');
-$p->setAttribute('class', 'recipe_id');
-$span = $doc->createElement('span');
-$span->setAttribute('class', 'label');
-$span->appendText("$cols2labels{'recipe_id'}:");
-$p->appendChild($span);
-$p->appendText(" $id (max $max_rid)");
-
-$div->appendChild($p);
-
-
-$r_div->appendChild($div);
+my $r_div = Local::Modulino::DB2JSON->make_html_recipe_description($doc, $recipe_hash, $id, $max_rid);
 
 ############# ingredients ###################
 if ($ingredient_hash->{$id}) {
@@ -287,6 +156,31 @@ if ($recipe_hash->{$id}->{'instructions'}) {
     $ins_div->appendChild($p);
   }
   $div->appendChild($ins_div);
+
+  $r_div->appendChild($div);
+}
+
+
+#################################################################
+### modifications (i.e. notes)
+
+if ($recipe_hash->{$id}->{'modifications'}) {
+
+  my $div = $doc->createElement('div');
+  $div->setAttribute('class', 'modifications');
+
+  my $h3 = $doc->createElement('h3');
+  $h3->appendText('Notizen');
+  $div->appendChild($h3);
+  
+  ## split on linux or windows newline chars in string:
+  my @lines = split(/\r?\n/, $recipe_hash->{$id}->{'modifications'});
+
+  foreach my $line (@lines) {
+    my $p = $doc->createElement('p');
+    $p->appendText($line);
+    $div->appendChild($p);
+  }
 
   $r_div->appendChild($div);
 }

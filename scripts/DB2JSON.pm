@@ -10,6 +10,8 @@ use English;
 use Data::Types qw(:all);
 use List::MoreUtils qw(each_array);
 
+use XML::LibXML;
+
 use Data::Dumper;
 use Carp;
 use Carp::Assert;
@@ -434,7 +436,7 @@ sub fetch_some_recipes
     }
 
     ### these fields are just copied
-    foreach my $col_name (qw(title instructions modifications cuisine last_modified image)) {
+    foreach my $col_name (qw(title instructions modifications cuisine last_modified)) {
       $recipe_hash->{$id}->{$col_name} = $col_hash->{$col_name};
     }
 
@@ -903,6 +905,193 @@ sub ingredient_subgroup_2_html
   }
   
   return $ul;
+}
+
+sub setup_html_header
+  ### sets up html header
+  ### needed for header:
+  ###      - recipe title
+  ###      - link to stylesheet: style.css
+  ### returns document element and html element
+{
+  my $class = shift;
+  my $title = shift;
+
+  my $version = '1.0';
+  my $encoding = 'utf-8';
+  my $doc = XML::LibXML::Document->new( $version, $encoding );
+
+  my $rootnode = 'html';
+  my $public = '-//W3C//DTD XHTML 1.0 Strict//EN';
+  my $system = 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd';
+  my $dtd = $doc->createInternalSubset( $rootnode, $public, $system);
+
+  my $html = $doc->createElementNS('http://www.w3.org/1999/xhtml', 'html');
+
+  my $head = $doc->createElement('head');
+
+  my $meta = $doc->createElement('meta');
+  $meta->setAttribute('http-equiv', 'content-type');
+  $meta->setAttribute('content', 'text/html; charset=utf-8');
+  $head->appendChild($meta);
+
+  $head->appendTextChild('title', $title);
+
+  my $css_link = $doc->createElement('link');
+  $css_link->setAttribute('rel', 'stylesheet');
+  $css_link->setAttribute('href', 'style.css');
+  $css_link->setAttribute('type', 'text/css');
+  $head->appendChild($css_link);
+
+  $html->appendChild($head);
+
+  return ($doc, $html);
+  
+};
+
+sub make_html_recipe_description
+  ### recipe header/description
+  ### arguments (required)
+  ###    - document element
+  ###    - recipe hash containing data for recipe header
+  ###    - recipe id
+  ### arguments (optional)
+  ###    - max recipe id - if present displayed in the recipe description
+  ### returns a div element containing the recipe header/description
+  ###
+  ### Images are expected to be found in the 'pics' directory relative
+  ### to where the html file is. Their file name is id.jpg
+{
+  my $class = shift;
+  my $doc = shift;
+  my $recipe_hash = shift;
+  my $id = shift;
+  my $max_rid = shift;
+
+  unless ($doc) { die "Argument 1 missing: document element\n" };
+  unless ($recipe_hash) { die "Argument 2 missing: recipe hash\n" };
+  unless ($id) { die "Argument 3 missing: recipe id\n"};
+
+  my $rel_picdir = 'pics';
+
+  my $r_div = $doc->createElement('div');
+  $r_div->setAttribute('class', 'recipe');
+  $r_div->setAttribute('itemscope');
+  $r_div->setAttribute('itemtype', 'http://schema.org/Recipe');
+
+  if ($recipe_hash->{$id}->{'image_file'}) {
+    my $img = $doc->createElement('img');
+    $img->setAttribute('src', "$rel_picdir/$id.jpg");
+    $img->setAttribute('itemprop', 'image');
+    $r_div->appendChild($img);
+  }  
+
+  my $div = $doc->createElement('div');
+  $div->setAttribute('class', 'header');
+
+  my $p = $doc->createElement('p');
+  $p->setAttribute('class', 'title');
+
+  my $span = $doc->createElement('span');
+  $span->setAttribute('class', 'label');
+  $span->appendText('Titel:');
+  $p->appendChild($span);
+
+  my $title = $recipe_hash->{$id}->{'title'};
+  $span = $doc->createElement('span');
+  $span->setAttribute('itemprop', 'name');
+  $span->appendText($title);
+  $p->appendChild($span);
+
+  $div->appendChild($p);
+
+  my %cols2labels = (
+    'yields' => 'Ertrag',
+    'cooktime' => 'Garzeit',
+    'preptime' => 'Zubereitungszeit',
+    'category' => 'Kategorie',
+    'cuisine' => 'Küche',
+    'source' => 'Quelle',
+    'last_modified' => 'Letzte Änderung',
+    'recipe_id' => 'Rezept Nr.',
+    );
+
+  my %cols2itemprops = (
+    'yields' => 'recipeYield',
+    'cooktime' => 'cookTime',
+    'preptime' => 'prepTime',
+    'category' => 'recipeCategory',
+    'cuisine' => 'recipeCuisine',
+    );
+
+  foreach my $col (qw(yields cooktime preptime category cuisine)) {
+    if ($recipe_hash->{$id}->{$col}) {
+      my $p = $doc->createElement('p');
+      $p->setAttribute('class', $col);
+      my $span = $doc->createElement('span');
+      $span->setAttribute('class', 'label');
+      $span->appendText("$cols2labels{$col}:");
+      $p->appendChild($span);
+      
+      $span = $doc->createElement('span');
+      $span->setAttribute('itemprop', $cols2itemprops{$col});
+      $span->appendText($recipe_hash->{$id}->{$col});
+      $p->appendChild($span);
+
+      $div->appendChild($p);
+    }
+  }
+
+  if ($recipe_hash->{$id}->{'source'}) {
+    $p = $doc->createElement('p');
+    $p->setAttribute('class', 'source');
+    $span = $doc->createElement('span');
+    $span->setAttribute('class', 'label');
+    $span->appendText("$cols2labels{'source'}:");
+    $p->appendChild($span);
+    $p->appendText(" $recipe_hash->{$id}->{'source'}");
+
+    $div->appendChild($p);
+  }
+
+  if (my $link = $recipe_hash->{$id}->{'link'}) {
+    $a = $doc->createElement('a');
+    $a->setAttribute('href', $link);
+    $a->appendText("Originalseite: $link");
+
+    $div->appendChild($a);
+  }
+
+  if ($recipe_hash->{$id}->{'last_modified'}) {
+    $p = $doc->createElement('p');
+    $p->setAttribute('class', 'last_modified');
+    $span = $doc->createElement('span');
+    $span->setAttribute('class', 'label');
+    $span->appendText("$cols2labels{'last_modified'}:");
+    $p->appendChild($span);
+    $p->appendText(" $recipe_hash->{$id}->{'last_modified'}");
+
+    $div->appendChild($p);
+  }
+
+  $p = $doc->createElement('p');
+  $p->setAttribute('class', 'recipe_id');
+  $span = $doc->createElement('span');
+  $span->setAttribute('class', 'label');
+  $span->appendText("$cols2labels{'recipe_id'}:");
+  $p->appendChild($span);
+  my $text = " $id";
+  if ($max_rid) {
+    $text = "$text (max $max_rid)";
+  }
+  $p->appendText($text);
+
+  $div->appendChild($p);
+
+
+  $r_div->appendChild($div);
+
+  return $r_div;
 }
 
 __END__
