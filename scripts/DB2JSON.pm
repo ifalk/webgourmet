@@ -895,6 +895,9 @@ sub ingredient_subgroup_2_html
     }
     if ($comp[1] eq 'recipe') {
       my $a = $doc->createElement('a');
+      $a->setAttribute('target', '_blank');
+      $a->setAttribute('rel', 'noopener noreferrer');
+
       $a->setAttribute('href', $ing_atts->{'refid'});
       $a->appendText($ing_string);
       $li->appendChild($a);
