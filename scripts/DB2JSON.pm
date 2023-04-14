@@ -1259,6 +1259,37 @@ sub make_html_recipe_modifications
   return $r_div;
 }
 
+sub export2html_collect_data
+  ### collect data needed for html export for given ids
+  ### arguments (required)
+  ###     - database handle
+  ###     - list of ids (array reference)
+  ### returns two hashes
+  ###    - recipe hash: contains data about recipe description,
+  ###                   instructions, modifications
+  ###    - ingredient hash: contains data about ingredients
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $ids = shift;
 
+  unless ($dbh) { die 'Argument missing: database handle' };
+  unless ($ids) { die 'Argument missing: list of ids (reference to array)' };
+
+  my $add_recipes_needed = $class->get_recipes_involved($dbh, $ids);
+  push (@{ $ids }, @{ $add_recipes_needed });
+  print STDERR "All recipes needed: ", join(', ', @{ $ids }), "\n";
+
+  my $recipe_hash = $class->fetch_some_recipes($dbh, $ids);
+  # print STDERR Dumper($recipe_hash);
+
+  my $ingredient_hash = $class->fetch_some_ingredients($dbh, $ids, $recipe_hash);
+
+  #### add categories to recipe hash
+  $recipe_hash = $class->fetch_some_categories($dbh, $ids, $recipe_hash);
+  
+  return ($recipe_hash, $ingredient_hash);
+  
+}
 __END__
 

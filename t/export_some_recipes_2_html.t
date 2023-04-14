@@ -28,18 +28,7 @@ my $test_ids = [
 
 #### collect data for recipe ids from database
 
-my $add_recipes_needed = Local::Modulino::DB2JSON->get_recipes_involved($dbh, $test_ids);
-push (@{ $test_ids }, @{ $add_recipes_needed });
-print STDERR "All recipes needed: ", join(', ', @{ $test_ids }), "\n";
-
-
-my $recipe_hash = Local::Modulino::DB2JSON->fetch_some_recipes($dbh, $test_ids);
-# print STDERR Dumper($recipe_hash);
-
-my $ingredient_hash = Local::Modulino::DB2JSON->fetch_some_ingredients($dbh, $test_ids, $recipe_hash);
-
-#### add categories to recipe hash
-$recipe_hash = Local::Modulino::DB2JSON->fetch_some_categories($dbh, $test_ids, $recipe_hash);
+my ($recipe_hash, $ingredient_hash) = Local::Modulino::DB2JSON->export2html_collect_data($dbh, $test_ids);
 
 #### variables/constants needed for storing
 ####  - html files
