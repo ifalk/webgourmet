@@ -37,23 +37,16 @@ my ($recipe_hash, $ingredient_hash) = Local::Modulino::DB2JSON->export2html_coll
 
 my $html_dir = 'tests';
 my $pic_dir = "$html_dir/pics";
-my $id2image_file = Local::Modulino::DB2JSON->fetch_some_images($dbh, $test_ids, $pic_dir);
-my $img_nbr = scalar(keys %{ $id2image_file });
-print STDERR "Number of saved images: $img_nbr\n";
-print STDERR Dumper($id2image_file);
 
-### add file names of saved images to $recipe_hash
-foreach my $id (keys %{ $id2image_file }) {
-  $recipe_hash->{$id}->{'image_file'} = $id2image_file->{$id};
-}
-
-#### picture directory in html file: has to be relative to where the html file is
-my $rel_picdir = 'pics';
+$recipe_hash = Local::Modulino::DB2JSON->export2html_collect_images($dbh, $recipe_hash, $html_dir, $pic_dir);
 
 my $max_rid = Local::Modulino::DB2JSON->get_max_id($dbh);
 print STDERR "Max recipe id: $max_rid\n";
 
 $dbh->disconnect();
+
+#### picture directory in html file: has to be relative to where the html file is
+my $rel_picdir = 'pics';
 
 ########################################
 ### create html documents for given ids
@@ -63,58 +56,9 @@ use XML::LibXML;
 
 foreach my $id (@{ $test_ids }) {
 
-  my $title = $recipe_hash->{$id}->{'title'};
-  print STDERR "id: $id, title: $title\n";
 
-  #### Where to save the html file to
-  my $file_name = "$html_dir/$title$id.html";
-
-
-  ##################################
-  ### Setup header of html document
-  #
-  # for header we need:
-  # - title from recipe hash
-  # - link to stylesheet: style.css
-
-  my ($doc, $html) = Local::Modulino::DB2JSON->setup_html_header($title);
-
-
-  ###########################################################
-  ### the html body
-
-  my $body = $doc->createElement('body');
-
-  $html->appendChild($body);
-
-  #############
-  ### recipe header/description
-
-  my $r_div = Local::Modulino::DB2JSON->make_html_recipe_description($doc, $recipe_hash, $id, $max_rid);
-
-  ############# ingredients ###################
-
-  $r_div = Local::Modulino::DB2JSON->make_html_recipe_ingredients($doc, $r_div, $ingredient_hash, $id);
-
-  ######################################
-  ### instructions
-
-  $r_div = Local::Modulino::DB2JSON->make_html_recipe_instructions($doc, $r_div, $recipe_hash, $id);
-
-
-  #################################################################
-  ### modifications (i.e. notes)
-
-  $r_div = Local::Modulino::DB2JSON->make_html_recipe_modifications($doc, $r_div, $recipe_hash, $id);
-
-  $body->appendChild($r_div);
-
-  $html->appendChild($body);
-
-  $doc->setDocumentElement($html);
-
-
-  $doc->toFile($file_name, 1);
+  Local::Modulino::DB2JSON->export2html_id($id, $recipe_hash, $ingredient_hash, $max_rid, $html_dir, $rel_picdir);
+  
 }
 
 

@@ -1291,5 +1291,129 @@ sub export2html_collect_data
   return ($recipe_hash, $ingredient_hash);
   
 }
+
+sub export2html_collect_images
+  ### collect image data needed for html export for ids given as keys of recipe hash
+  ###   - images are extracted from db and stored at given location
+  ###   - data about image location (file name) is added to recipe hash
+  ### arguments (required)
+  ###    - database handle
+  ###    - recipe hash: key are ids for which to extract images
+  ### arguments (optional - needed to compute image file name)
+  ###    - html dir: where the html files, are stored - default currend dir
+  ###    - pic dir: where image files are stored - default $html_dir/pics
+  ### returns 
+  ###    - the recipe hash with the additional image information
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_hash = shift;
+  my $html_dir = shift;
+  my $pic_dir = shift;
+
+  unless ($dbh) { die 'Argument missing: database handle' };
+  unless ($recipe_hash) { die 'Argument missing: list of ids (reference to array)' };
+  unless ($html_dir) { $html_dir = '.' };
+  unless ($pic_dir) { $pic_dir = "$html_dir/pics"; };
+
+  my $ids = [ keys %{ $recipe_hash } ];
+
+  my $id2image_file = $class->fetch_some_images($dbh, $ids, $pic_dir);
+  my $img_nbr = scalar(keys %{ $id2image_file });
+
+  ### add file names of saved images to $recipe_hash
+  foreach my $id (keys %{ $id2image_file }) {
+    $recipe_hash->{$id}->{'image_file'} = $id2image_file->{$id};
+  }
+
+  return $recipe_hash;
+  
+}
+
+sub export2html_id
+  ### build and save html file for given id, based on recipe and ingredient data
+  ### collected previously from db
+  ### arguments (required)
+  ###   - recipe id
+  ###   - recipe hash
+  ###   - ingredient hash
+  ### arguments (optional)
+  ###   - max recipe id: if present is output in recipe description
+  ###   - html dir: where to write html files - default current directory
+  ###   - rel picture dir: picture directory in html file, default 'pics'
+  ###     has to be relative to where the html file is
+{
+  my $class = shift;
+  my $id = shift;
+  my $recipe_hash = shift;
+  my $ingredient_hash = shift;
+  my $max_rid = shift;
+  my $html_dir = shift;
+  my $rel_picdir = shift;
+
+  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
+  unless ($ingredient_hash) { die 'Argument missing: ingredient hash' };
+  unless ($id) { die 'Argument missing: recipe id' };
+  unless ($html_dir) { $html_dir = '.' };
+  unless ($rel_picdir) { $rel_picdir = 'pics'; };
+
+  my $title = $recipe_hash->{$id}->{'title'};
+  print STDERR "id: $id, title: $title\n";
+
+  #### Where to save the html file to
+  my $file_name = "$html_dir/$title$id.html";
+
+
+  ##################################
+  ### Setup header of html document
+  #
+  # for header we need:
+  # - title from recipe hash
+  # - link to stylesheet: style.css
+
+  my ($doc, $html) = $class->setup_html_header($title);
+
+
+  ###########################################################
+  ### the html body
+
+  my $body = $doc->createElement('body');
+
+  $html->appendChild($body);
+
+  #############
+  ### recipe header/description
+
+  my $r_div = $class->make_html_recipe_description($doc, $recipe_hash, $id, $max_rid);
+
+  ############# ingredients ###################
+
+  $r_div = $class->make_html_recipe_ingredients($doc, $r_div, $ingredient_hash, $id);
+
+  ######################################
+  ### instructions
+
+  $r_div = $class->make_html_recipe_instructions($doc, $r_div, $recipe_hash, $id);
+
+
+  #################################################################
+  ### modifications (i.e. notes)
+
+  $r_div = $class->make_html_recipe_modifications($doc, $r_div, $recipe_hash, $id);
+
+  $body->appendChild($r_div);
+
+  $html->appendChild($body);
+
+  $doc->setDocumentElement($html);
+
+
+  $doc->toFile($file_name, 1);
+
+  
+  
+};
+
+
 __END__
 
