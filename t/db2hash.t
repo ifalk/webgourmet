@@ -35,7 +35,7 @@ print STDERR "Found $nbr_recipes_wo_cat recipes wo a category\n";
 # print STDERR Dumper($recipes_wo_cat);
 # print STDERR Dumper($recipe_hash->{'1893'});
 
-
+my $html_dir='html_export';
 $recipe_hash = Local::Modulino::DB2JSON->export2html_collect_all_images($dbh, $recipe_hash, $html_dir, $pic_dir);
 
 
