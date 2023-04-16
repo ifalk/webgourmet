@@ -268,6 +268,71 @@ sub fetch_some_ingredients
   return $ing_hash;
 }
 
+sub fetch_all_ingredients
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_hash = shift; # needed to find out titles of referred to recipes (for html exports)
+
+# get ingredients and build id -> ingredient hash
+
+  my $select_fields = qq(recipe_id,refid,unit,amount,rangeamount,item,ingkey,optional,inggroup);
+
+  my $stmt = qq(select $select_fields from ingredients where deleted=0;); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $ing_hash = {};
+
+  while (my $ing_list = $sth->fetchrow_hashref()) {
+
+    my $recipe_id = $ing_list->{recipe_id};
+
+    my $item = $ing_list->{item};
+
+    my $unit = $ing_list->{unit};
+    my $amount = $class->stringify_amounts($ing_list->{amount}, $ing_list->{rangeamount});
+    my $optional = $ing_list->{optional};
+    my $ingkey = $ing_list->{ingkey};
+
+    my $ing_group = $ing_list->{inggroup};
+    unless ($ing_group) {
+      $ing_group = 'none';
+    }
+
+    my %fields = (
+      'unit' => $unit,
+      'amount' => $amount,
+      'optional' => $optional,
+      'ingkey' => $ingkey
+    );
+
+    my $item_hash;
+
+    while ( my ($key, $value) = each(%fields) ) {
+      # $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{$key} = $value;
+      $item_hash->{$key} = $value;
+    };
+
+    if ($unit and ($unit eq 'recipe')) {
+      my $refid = $ing_list->{'refid'};
+      if ($recipe_hash and $recipe_hash->{$refid}) {
+	my $reftitle = $recipe_hash->{$refid}->{'title'};
+	$refid = "$reftitle$refid.html";
+      }
+      # $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
+      $item_hash->{'refid'} = $refid;
+    }
+
+    push(@{ $ing_hash->{$recipe_id}->{$ing_group} }, [ $item => $item_hash ]);
+  }
+
+  return $ing_hash;
+}
+
 
 
 sub fetch_ingredients
@@ -462,6 +527,61 @@ sub fetch_some_recipes
   return $recipe_hash;
 }
 
+sub fetch_all_recipes
+{
+  my $class = shift;
+  my $dbh = shift;
+
+# get recipe description and build id -> description hash
+
+  my $select_fields = qq(id,title,instructions,modifications,cuisine,rating,source,strftime('%H:%M', preptime, 'unixepoch'),strftime('%H:%M', cooktime, 'unixepoch'),servings,link,date(last_modified, 'unixepoch'),yields,yield_unit,image);
+  my @col_names = qw(title instructions modifications cuisine rating source preptime cooktime servings link last_modified yields yield_unit image);
+  my $stmt = qq(select $select_fields  from recipe where deleted=0;); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $recipe_hash = {};
+
+  while (my @col_values = $sth->fetchrow()) {
+    my $id = shift(@col_values); # remove value for 'id'
+
+    my $col_hash={};
+    my $ea = each_array(@col_names, @col_values);
+    while (my ($col_name, $col_value) = $ea->()) {
+      $col_hash->{$col_name} = $col_value;
+    }
+
+    ### these fields are just copied
+    foreach my $col_name (qw(title instructions modifications cuisine last_modified)) {
+      $recipe_hash->{$id}->{$col_name} = $col_hash->{$col_name};
+    }
+
+    ### strings for times
+    foreach my $time (qw(preptime cooktime)) {
+      $recipe_hash->{$id}->{$time} = $class->stringify_db_time($col_hash->{$time});
+    }
+
+
+    ### strings for yields
+    $recipe_hash->{$id}->{yields} = $class->stringify_yields($col_hash->{servings}, $col_hash->{yields}, $col_hash->{yield_unit});
+
+    ### string for rating
+    $recipe_hash->{$id}->{rating} = $class->stringify_db_rating($col_hash->{rating});
+
+    ### strings for source and link
+    my ($source, $link) = $class->stringify_source_link($col_hash->{source}, $col_hash->{link});
+    $recipe_hash->{$id}->{source} = $source;
+    $recipe_hash->{$id}->{link} = $link;
+    
+  }
+  
+  return $recipe_hash;
+}
+
+
 sub fetch_some_categories
 {
   my $class = shift;
@@ -501,6 +621,60 @@ sub fetch_some_categories
   
 }
 
+sub fetch_all_categories
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_hash = shift;
+
+  # get categories and build id -> categories hash
+
+  my $select_fields = qq(recipe_id,category);
+
+  my $stmt = qq(select $select_fields from categories;); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+  my $cat_hash = {};
+
+  while (my ($recipe_id, $category) = $sth->fetchrow()) {
+    $cat_hash->{$recipe_id}->{$category}++;
+  }
+
+  ### if recipe hash is given update it with categories and return it
+  if ($recipe_hash) {
+    foreach my $id (keys %{ $cat_hash }) {
+      my $cat_string = join(', ', keys %{ $cat_hash->{$id} });
+      $recipe_hash->{$id}->{'category'} = $cat_string;
+    }
+    return $recipe_hash;
+  }
+  
+  return $cat_hash;
+  
+}
+
+sub recipes_wo_cat
+  ### check which recipes don't have a category
+{
+  my $class = shift;
+  my $recipe_hash = shift;
+
+  my $recipes_wo_cat = {};
+
+  unless ($recipe_hash) { return $recipes_wo_cat };
+
+  foreach my $id (keys %{ $recipe_hash }) {
+    unless (exists $recipe_hash->{$id}->{'category'}) {
+      $recipes_wo_cat->{$id}++;
+    }
+  }
+  return $recipes_wo_cat;
+}
+
 sub fetch_some_images
   ### gets images for given ids from database
   ### saves them as pic_dir/id.jpg
@@ -527,6 +701,65 @@ sub fetch_some_images
   my $select_fields = qq(id,image);
 
   my $stmt = qq(select $select_fields from recipe where id in ($recipe_id_string)); 
+  my $sth = $dbh->prepare( $stmt);
+  my $rv = $sth->execute() or die $DBI::errstr;
+  if($rv < 0) {
+    print $DBI::errstr;
+  }
+
+
+
+  my %id2image;
+
+  while (my ($id, $img) = $sth->fetchrow()) {
+    if ($img) {
+      $id2image{$id} = $img;
+    }
+  }
+
+  my $img_nbr = scalar(keys %id2image);
+
+  my $id2img_file = {};
+  unless ($img_nbr) { return $id2img_file };
+
+  use File::Path qw(make_path);
+  eval { make_path($pic_dir) };
+  if ($@) {
+    die "Couldn't create $pic_dir: $@";
+  }
+
+  foreach my $id (keys %id2image) {
+    my $img_file = "$pic_dir/$id.jpg";
+    open my $fh, '>', $img_file or die $!;
+    binmode $fh;
+    print $fh $id2image{$id};
+    close $fh;
+
+    $id2img_file->{$id} = $img_file;
+  }
+
+  return $id2img_file;
+}
+
+sub fetch_all_images
+  ### gets images for all recipes from database
+  ### saves them as pic_dir/id.jpg
+  ### returns a reference to a hash: id -> saved image file
+  ### parameters
+  ### 1. database handle
+  ### 2. optional: pic_dir, directory where to save images (created if it doesn't exist
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $pic_dir = shift;
+
+  unless ($pic_dir) {
+    $pic_dir = 'pics';
+  }
+  
+  my $select_fields = qq(id,image);
+
+  my $stmt = qq(select $select_fields from recipe where deleted=0); 
   my $sth = $dbh->prepare( $stmt);
   my $rv = $sth->execute() or die $DBI::errstr;
   if($rv < 0) {
@@ -1292,6 +1525,32 @@ sub export2html_collect_data
   
 }
 
+sub export_all_2html_collect_data
+  ### collect data needed for html export for all recipes
+  ### arguments (required)
+  ###     - database handle
+  ### returns two hashes
+  ###    - recipe hash: contains data about recipe description,
+  ###                   instructions, modifications
+  ###    - ingredient hash: contains data about ingredients
+{
+  my $class = shift;
+  my $dbh = shift;
+
+  unless ($dbh) { die 'Argument missing: database handle' };
+
+  my $recipe_hash = $class->fetch_all_recipes($dbh);
+
+  my $ingredient_hash = $class->fetch_all_ingredients($dbh, $recipe_hash);
+
+  # #### add categories to recipe hash
+  $recipe_hash = $class->fetch_all_categories($dbh, $recipe_hash);
+  
+  # return ($recipe_hash, $ingredient_hash);
+  
+}
+
+
 sub export2html_collect_images
   ### collect image data needed for html export for ids given as keys of recipe hash
   ###   - images are extracted from db and stored at given location
@@ -1319,11 +1578,51 @@ sub export2html_collect_images
   my $ids = [ keys %{ $recipe_hash } ];
 
   my $id2image_file = $class->fetch_some_images($dbh, $ids, $pic_dir);
-  my $img_nbr = scalar(keys %{ $id2image_file });
+  # my $img_nbr = scalar(keys %{ $id2image_file });
 
   ### add file names of saved images to $recipe_hash
   foreach my $id (keys %{ $id2image_file }) {
     $recipe_hash->{$id}->{'image_file'} = $id2image_file->{$id};
+  }
+
+  return $recipe_hash;
+  
+}
+
+sub export2html_collect_all_images
+  ### collect image data needed for html export for all recipes in db
+  ###   - images are extracted from db and stored at given location
+  ###   - data about image location (file name) is added to recipe hash
+  ### arguments (required)
+  ###    - database handle
+  ###    - recipe hash
+  ### arguments (optional - needed to compute image file name)
+  ###    - html dir: where the html files, are stored - default currend dir
+  ###    - pic dir: where image files are stored - default $html_dir/pics
+  ### returns 
+  ###    - the recipe hash with the additional image information
+{
+  my $class = shift;
+  my $dbh = shift;
+  my $recipe_hash = shift;
+  my $html_dir = shift;
+  my $pic_dir = shift;
+
+  unless ($dbh) { die 'Argument missing: database handle' };
+  unless ($recipe_hash) { die 'Argument missing: recipe hash, containing data for recipes' };
+  unless ($html_dir) { $html_dir = '.' };
+  unless ($pic_dir) { $pic_dir = "$html_dir/pics"; };
+
+  my $id2image_file = $class->fetch_all_images($dbh, $pic_dir);
+  # my $img_nbr = scalar(keys %{ $id2image_file });
+
+  ### add file names of saved images to $recipe_hash
+  foreach my $id (keys %{ $id2image_file }) {
+    if (exists $recipe_hash->{$id}) {
+      $recipe_hash->{$id}->{'image_file'} = $id2image_file->{$id};
+    } else {
+      print STDERR "Id $id: no entry in recipe hash\n";
+    }
   }
 
   return $recipe_hash;
@@ -1411,6 +1710,89 @@ sub export2html_id
   $doc->toFile($file_name, 1);
 
   
+  
+};
+
+sub export2html_all
+  ### build and save html file for all recipes, based on recipe and ingredient data
+  ### collected previously from db
+  ### arguments (required)
+  ###   - recipe hash
+  ###   - ingredient hash
+  ### arguments (optional)
+  ###   - max recipe id: if present is output in recipe description
+  ###   - html dir: where to write html files - default current directory
+  ###   - rel picture dir: picture directory in html file, default 'pics'
+  ###     has to be relative to where the html file is
+{
+  my $class = shift;
+  my $recipe_hash = shift;
+  my $ingredient_hash = shift;
+  my $max_rid = shift;
+  my $html_dir = shift;
+  my $rel_picdir = shift;
+
+  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
+  unless ($ingredient_hash) { die 'Argument missing: ingredient hash' };
+  unless ($html_dir) { $html_dir = '.' };
+  unless ($rel_picdir) { $rel_picdir = 'pics'; };
+
+
+  foreach my $id (keys %{ $recipe_hash }) {
+  
+    my $title = $recipe_hash->{$id}->{'title'};
+
+    #### Where to save the html file to
+    my $file_name = "$html_dir/$title$id.html";
+
+
+    ##################################
+    ### Setup header of html document
+    #
+    # for header we need:
+    # - title from recipe hash
+    # - link to stylesheet: style.css
+
+    my ($doc, $html) = $class->setup_html_header($title);
+
+
+    ###########################################################
+    ### the html body
+
+    my $body = $doc->createElement('body');
+
+    $html->appendChild($body);
+
+    #############
+    ### recipe header/description
+
+    my $r_div = $class->make_html_recipe_description($doc, $recipe_hash, $id, $max_rid);
+
+    ############# ingredients ###################
+
+    $r_div = $class->make_html_recipe_ingredients($doc, $r_div, $ingredient_hash, $id);
+
+    ######################################
+    ### instructions
+
+    $r_div = $class->make_html_recipe_instructions($doc, $r_div, $recipe_hash, $id);
+
+
+    #################################################################
+    ### modifications (i.e. notes)
+
+    $r_div = $class->make_html_recipe_modifications($doc, $r_div, $recipe_hash, $id);
+
+    $body->appendChild($r_div);
+
+    $html->appendChild($body);
+
+    $doc->setDocumentElement($html);
+
+
+    $doc->toFile($file_name, 1);
+
+  }
   
 };
 
