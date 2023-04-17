@@ -1739,12 +1739,14 @@ sub export2html_all
 
 
   foreach my $id (keys %{ $recipe_hash }) {
-  
+
+    print STDERR "Id: $id\n";
+
     my $title = $recipe_hash->{$id}->{'title'};
+    print STDERR "Title: $title\n";
 
     #### Where to save the html file to
-    my $file_name = "$html_dir/$title$id.html";
-
+    my $file_name = "$html_dir/$id.html";
 
     ##################################
     ### Setup header of html document
