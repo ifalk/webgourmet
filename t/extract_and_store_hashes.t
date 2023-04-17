@@ -50,3 +50,9 @@ use File::Slurp qw(read_file write_file);
 
 my $json = encode_json($recipe_hash);
 write_file('recipes.json', { binmode => ':raw' }, $json);
+
+$json = read_file('recipes.json', { binmode => ':raw' });
+my $recipe_hash_reloaded = decode_json($json);
+
+
+is_deeply($recipe_hash, $recipe_hash_reloaded, 'hashes should be the same');
