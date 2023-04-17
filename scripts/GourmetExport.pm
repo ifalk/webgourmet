@@ -1726,6 +1726,7 @@ sub export2html_all
   ###   - html dir: where to write html files - default current directory
   ###   - rel picture dir: picture directory in html file, default 'pics'
   ###     has to be relative to where the html file is
+  ### returns: hash with ids as keys and name of generated html file as value 
 {
   my $class = shift;
   my $recipe_hash = shift;
@@ -1739,19 +1740,19 @@ sub export2html_all
   unless ($html_dir) { $html_dir = '.' };
   unless ($rel_picdir) { $rel_picdir = 'pics'; };
 
+  my $id2file_name = {};
 
   foreach my $id (keys %{ $recipe_hash }) {
 
-    print STDERR "Id: $id\n";
-
     my $title = $recipe_hash->{$id}->{'title'};
-    print STDERR "Title: $title\n";
 
     #### Where to save the html file to
     use File::Util qw(escape_filename);
     my $title_sanitized = escape_filename($title);
     my $file_name = "$html_dir/$title_sanitized$id.html";
 
+    $id2file_name->{$id} = $file_name;
+    
     ##################################
     ### Setup header of html document
     #
@@ -1799,6 +1800,8 @@ sub export2html_all
     $doc->toFile($file_name, 1);
 
   }
+
+  return $id2file_name;
   
 };
 

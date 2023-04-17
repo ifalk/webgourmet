@@ -37,4 +37,7 @@ my $rel_picdir = 'pics';
 my $nbr_recipes = scalar(keys %{ $recipe_hash });
 print STDERR "Total number of recipes: $nbr_recipes\n";
 
-Local::Modulino::GourmetExport->export2html_all($recipe_hash, $ingredient_hash, $max_rid, $html_dir, $rel_picdir);
+my $id2file_name = Local::Modulino::GourmetExport->export2html_all($recipe_hash, $ingredient_hash, $max_rid, $html_dir, $rel_picdir);
+
+my $json = encode_json($id2file_name);
+write_file('id2file_name.json', $json);
