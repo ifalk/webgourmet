@@ -1,7 +1,7 @@
 #### test how to save images from db
 
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -10,9 +10,9 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
-my $sth = Local::Modulino::DB2JSON->fetch_images($dbh);
+my $sth = Local::Modulino::GourmetExport->fetch_images($dbh);
 
 my %id2thumb;
 my %id2image;

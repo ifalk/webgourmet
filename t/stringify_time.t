@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -30,7 +30,7 @@ my $time_values = [keys %test_recipe_ids];
 my $time_values_string = join(',', @{ $time_values });
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 my $stmt = qq(select id, title, strftime('%H:%M', preptime, 'unixepoch') from recipe where id in ($time_values_string););
 my $sth = $dbh->prepare($stmt);
 
@@ -41,7 +41,7 @@ if($rv < 0) {
 
 while (my ($id, $title, $db_preptime) = $sth->fetchrow()) {
 
-  my $time_string = Local::Modulino::DB2JSON->stringify_db_time($db_preptime);
+  my $time_string = Local::Modulino::GourmetExport->stringify_db_time($db_preptime);
 
 
   is ($time_string, $test_recipe_ids{$id}->[0], "id $id, preptime $test_recipe_ids{$id}->[0],  $test_recipe_ids{$id}->[1]");

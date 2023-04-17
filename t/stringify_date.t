@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -9,7 +9,7 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
 my $stmt = qq(select id, title, date(last_modified, 'unixepoch') from recipe order by last_modified asc;);
 my $sth = $dbh->prepare($stmt);

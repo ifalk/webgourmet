@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -9,7 +9,7 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
 my $test_ids = [
   '1302', # recipe w/ other recipe as ingredient
@@ -28,7 +28,7 @@ my $test_ids = [
 
 #### collect data for recipe ids from database
 
-my ($recipe_hash, $ingredient_hash) = Local::Modulino::DB2JSON->export2html_collect_data($dbh, $test_ids);
+my ($recipe_hash, $ingredient_hash) = Local::Modulino::GourmetExport->export2html_collect_data($dbh, $test_ids);
 
 #### variables/constants needed for storing
 ####  - html files
@@ -38,9 +38,9 @@ my ($recipe_hash, $ingredient_hash) = Local::Modulino::DB2JSON->export2html_coll
 my $html_dir = 'tests';
 my $pic_dir = "$html_dir/pics";
 
-$recipe_hash = Local::Modulino::DB2JSON->export2html_collect_images($dbh, $recipe_hash, $html_dir, $pic_dir);
+$recipe_hash = Local::Modulino::GourmetExport->export2html_collect_images($dbh, $recipe_hash, $html_dir, $pic_dir);
 
-my $max_rid = Local::Modulino::DB2JSON->get_max_id($dbh);
+my $max_rid = Local::Modulino::GourmetExport->get_max_id($dbh);
 print STDERR "Max recipe id: $max_rid\n";
 
 $dbh->disconnect();

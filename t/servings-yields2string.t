@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -9,7 +9,7 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
 ### test yields/servings
 # - 2/3: 1210
@@ -52,7 +52,7 @@ if($rv < 0) {
 
 while (my ($id, $title, $db_servings, $db_yields, $yield_unit) = $sth->fetchrow()) {
 
-  my $yield_string = Local::Modulino::DB2JSON->stringify_yields($db_servings, $db_yields, $yield_unit);
+  my $yield_string = Local::Modulino::GourmetExport->stringify_yields($db_servings, $db_yields, $yield_unit);
 
 
   is ($yield_string, $test_recipe_ids{$id}->[0], "id $id: $test_recipe_ids{$id}->[1]");

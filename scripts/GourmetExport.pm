@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-package Local::Modulino::DB2JSON;
+package Local::Modulino::GourmetExport;
 
 __PACKAGE__->run( @ARGV ) unless caller();
 

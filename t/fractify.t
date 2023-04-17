@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -8,8 +8,8 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
-my $sth = Local::Modulino::DB2JSON->fetch_amounts($dbh);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
+my $sth = Local::Modulino::GourmetExport->fetch_amounts($dbh);
 
 my %amounts;
 
@@ -53,7 +53,7 @@ print STDERR Dumper(\%rems);
 
 foreach my $rem (keys %rems) {
   print STDERR "$rem\n";
-  my ($h, $k) = Local::Modulino::DB2JSON->fractify($rem, 0.02);
+  my ($h, $k) = Local::Modulino::GourmetExport->fractify($rem, 0.02);
   print STDERR "Fractified: $h/$k\n";
 }
 exit 1;
@@ -103,12 +103,12 @@ my @fraction_of = (0, 1, 0.5, 0., 1.0, 0.421875, 1.25, 0.333, 0.334, 0.666667);
 
 foreach my $n (@fraction_of) {
   print STDERR "$n\n";
-  Local::Modulino::DB2JSON->fractify($n), "\n";
+  Local::Modulino::GourmetExport->fractify($n), "\n";
 }
 
 foreach my $amount (keys %amounts) {
   print STDERR "$amount\n";
-  Local::Modulino::DB2JSON->fractify($amount), "\n";
+  Local::Modulino::GourmetExport->fractify($amount), "\n";
 };
 
 $dbh->disconnect();

@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -8,8 +8,8 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
-my $sth = Local::Modulino::DB2JSON->fetch_amounts($dbh);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
+my $sth = Local::Modulino::GourmetExport->fetch_amounts($dbh);
 
 my %amounts;
 
@@ -42,14 +42,14 @@ print STDERR "Number of not whole amounts: ", scalar(keys %not_wholes), "\n";
 
 ### empty
 print STDERR "Testing empty amount: \n";
-my $fractified = Local::Modulino::DB2JSON->float_to_frac('', 0.02);
+my $fractified = Local::Modulino::GourmetExport->float_to_frac('', 0.02);
 print STDERR "amount empty, fractified: $fractified\n";
 
 ### whole amounts
 
 print STDERR "Testing whole amounts: \n";
 foreach my $amount (keys %wholes) {
-  my $fractified = Local::Modulino::DB2JSON->float_to_frac($amount, 0.02);
+  my $fractified = Local::Modulino::GourmetExport->float_to_frac($amount, 0.02);
   print STDERR "amount: $amount\nfractified: $fractified\n";
 }
 
@@ -67,14 +67,14 @@ print STDERR Dumper(\%rems);
 print STDERR "Testing amounts between 0 and 1:\n";
 foreach my $rem (keys %rems) {
   print STDERR "$rem\n";
-  my $fractified = Local::Modulino::DB2JSON->float_to_frac($rem, 0.02);
+  my $fractified = Local::Modulino::GourmetExport->float_to_frac($rem, 0.02);
   print STDERR "Fractified: $fractified\n";
 }
 
 print STDERR "Testing non-whole amounts:\n";
 foreach my $amount (keys %not_wholes) {
   print STDERR "$amount\n";
-  my $fractified = Local::Modulino::DB2JSON->float_to_frac($amount, 0.02);
+  my $fractified = Local::Modulino::GourmetExport->float_to_frac($amount, 0.02);
   print STDERR "Fractified: $fractified\n";
 }
 

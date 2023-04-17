@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -8,7 +8,7 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
 my %test_amounts = (
   '27' => 'whole amount',
@@ -55,7 +55,7 @@ foreach my $recipe_id (keys %amounts) {
     my $db_amount = $amounts{$recipe_id}->{$item_id}->{'amount'};
     my $db_rangeamount = $amounts{$recipe_id}->{$item_id}->{'rangeamount'};
 
-    my $astring = Local::Modulino::DB2JSON->stringify_amounts($db_amount, $db_rangeamount);
+    my $astring = Local::Modulino::GourmetExport->stringify_amounts($db_amount, $db_rangeamount);
     print STDERR "      amount/rangeamount string: $astring\n";
   }
 }

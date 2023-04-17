@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -26,7 +26,7 @@ my %test_ratings = (
 
 foreach my $rating (keys %test_ratings) {
 
-  my $rating_string = Local::Modulino::DB2JSON->stringify_db_rating($rating);
+  my $rating_string = Local::Modulino::GourmetExport->stringify_db_rating($rating);
 
   is ($rating_string, $test_ratings{$rating}->[0], "input rating: $rating, expected: $test_ratings{$rating}->[0],  $test_rating{$rating}->[1]");
 
@@ -35,7 +35,7 @@ foreach my $rating (keys %test_ratings) {
 ### test rating values from db
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
 my %test_recipe_ids = (
   # recipe ids, the rating strings we expect 0 and test names 1
@@ -62,7 +62,7 @@ if($rv < 0) {
 
 while (my ($id, $title, $db_rating) = $sth->fetchrow()) {
 
-  my $rating_string = Local::Modulino::DB2JSON->stringify_db_rating($db_rating);
+  my $rating_string = Local::Modulino::GourmetExport->stringify_db_rating($db_rating);
 
   is ($rating_string, $test_recipe_ids{$id}->[0], "id $id, rating $test_recipe_ids{$id}->[0],  $test_recipe_ids{$id}->[1]");
   
@@ -80,7 +80,7 @@ $dbh->disconnect();
 
 # print STDERR "Distinct ratings:\n";
 # while (my ($db_rating) = $sth->fetchrow()) {
-#   print STDERR Local::Modulino::DB2JSON->stringify_db_rating($db_rating), "\n";
+#   print STDERR Local::Modulino::GourmetExport->stringify_db_rating($db_rating), "\n";
 # }
 
 

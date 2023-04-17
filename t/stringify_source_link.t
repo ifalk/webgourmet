@@ -1,5 +1,5 @@
 use lib '/home/falk/webgourmet/scripts';
-use DB2JSON;
+use GourmetExport;
 use Data::Dumper;
 use Test::More qw( no_plan );
 
@@ -10,7 +10,7 @@ use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
 my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::DB2JSON->get_db_handle($database);
+my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
 my %test_recipe_ids = (
   # recipe ids, the rating strings we expect 0 and test names 1
@@ -62,7 +62,7 @@ if($rv < 0) {
 
 while (my ($id, $title, $db_source, $db_link) = $sth->fetchrow()) {
 
-  my ($source_string, $link_string) = Local::Modulino::DB2JSON->stringify_source_link($db_source, $db_link);
+  my ($source_string, $link_string) = Local::Modulino::GourmetExport->stringify_source_link($db_source, $db_link);
 
   is ($source_string, $test_recipe_ids{$id}->{source}->[0], "id $id, source $test_recipe_ids{$id}->{source}->[0],  $test_recipe_ids{$id}->{source}->[1]");
 
