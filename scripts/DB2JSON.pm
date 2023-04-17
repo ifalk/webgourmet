@@ -1796,6 +1796,36 @@ sub export2html_all
   
 };
 
+sub recipes_db2hashes
+  ### save recipe_hash and ingredient hash to json files
+  ### arguments (required)
+  ###  - recipe_hash (reference)
+  ###  - ingredient_hash (reference)
+  ### arguments (optional)
+  ###  - json file name for recipe_hash - defaults to recipes.json
+  ###  - json file name for ingredients_hash - defaults to ingredients.json
+{
+  my $class = shift;
+  my $recipe_hash = shift;
+  my $ingredients_hash = shift;
+  my $recipes_file_name = shift;
+  my $ingredients_file_name = shift;
+
+  unless ($recipe_hash) { die "1. argument recipe hash missing\n"; };
+  unless ($ingredients_hash) { die "2. argument ingredients hash missing\n"; };
+
+  unless ($recipes_file_name) { $recipes_file_name = 'recipes.json' };
+  unless ($ingredients_file_name) { $ingredients_file_name = 'ingredients.json' };
+
+  use JSON::XS qw(encode_json decode_json);
+
+  my $json = encode_json($recipe_hash);
+  write_file('recipes.json', { binmode => ':raw' }, $json);
+
+  $json = encode_json($ingredients_hash);
+  write_file('ingredients.json', { binmode => ':raw' }, $json);
+
+};
 
 __END__
 

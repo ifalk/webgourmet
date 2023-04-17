@@ -46,11 +46,13 @@ $recipe_hash = Local::Modulino::DB2JSON->export2html_collect_all_images($dbh, $r
 $dbh->disconnect();
 
 #### save recipe_hash and ingredient hash
-use JSON::XS qw(encode_json decode_json);
-use File::Slurp qw(read_file write_file);
+# use JSON::XS qw(encode_json decode_json);
+# use File::Slurp qw(read_file write_file);
 
-my $json = encode_json($recipe_hash);
-write_file('recipes.json', { binmode => ':raw' }, $json);
+# my $json = encode_json($recipe_hash);
+# write_file('recipes.json', { binmode => ':raw' }, $json);
 
-$json = encode_json($ingredient_hash);
-write_file('ingredients.json', { binmode => ':raw' }, $json);
+# $json = encode_json($ingredient_hash);
+# write_file('ingredients.json', { binmode => ':raw' }, $json);
+
+Local::Modulino::DB2JSON->recipes_db2hashes($recipe_hash, $ingredients_hash);
