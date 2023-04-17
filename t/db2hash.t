@@ -55,4 +55,4 @@ $dbh->disconnect();
 # $json = encode_json($ingredient_hash);
 # write_file('ingredients.json', { binmode => ':raw' }, $json);
 
-Local::Modulino::GourmetExport->recipes_db2hashes($recipe_hash, $ingredients_hash);
+Local::Modulino::GourmetExport->recipes_db2hashes($recipe_hash, $ingredient_hash);

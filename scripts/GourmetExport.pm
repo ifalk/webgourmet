@@ -648,7 +648,9 @@ sub fetch_all_categories
   if ($recipe_hash) {
     foreach my $id (keys %{ $cat_hash }) {
       my $cat_string = join(', ', keys %{ $cat_hash->{$id} });
-      $recipe_hash->{$id}->{'category'} = $cat_string;
+      if (exists $recipe_hash->{$id}) {
+	$recipe_hash->{$id}->{'category'} = $cat_string;
+      }
     }
     return $recipe_hash;
   }
@@ -690,7 +692,7 @@ sub fetch_some_images
   my $pic_dir = shift;
 
 
-  die 'Need recipe ids (2nd par) for this function' unless $recipe_ids;
+  croak 'Need recipe ids (2nd par) for this function' unless $recipe_ids;
   unless ($pic_dir) {
     $pic_dir = 'pics';
   }
@@ -950,7 +952,7 @@ sub fractify {
   my $n = shift;
   my $approx = shift;
 
-  if ($n eq '') { die "number required\n"; }
+  if ($n eq '') { croak "number required\n"; }
 
   unless ($approx) {
     $approx = 0.01;
@@ -1086,10 +1088,10 @@ sub ingredient_subgroup_2_html
   my $subgroup = shift; # default = 'none'
   my $doc = shift;
 
-  unless ($ingredient_hash) { die "Argument missing: ingredient hash\n" };
-  unless ($id) { die "Argument missing: recipe id\n" };
+  unless ($ingredient_hash) { croak "Argument missing: ingredient hash\n" };
+  unless ($id) { croak "Argument missing: recipe id\n" };
   unless ($subgroup) { $subgroup = 'none' };
-  unless ($doc) { die "Argument missing: html document element (needed to create ul)\n" };
+  unless ($doc) { croak "Argument missing: html document element (needed to create ul)\n" };
 
   my $ing_ref = $ingredient_hash->{$id};
   unless ($ing_ref->{$subgroup}) {
@@ -1204,9 +1206,9 @@ sub make_html_recipe_description
   my $id = shift;
   my $max_rid = shift;
 
-  unless ($doc) { die "Argument 1 missing: document element\n" };
-  unless ($recipe_hash) { die "Argument 2 missing: recipe hash\n" };
-  unless ($id) { die "Argument 3 missing: recipe id\n"};
+  unless ($doc) { croak "Argument 1 missing: document element\n" };
+  unless ($recipe_hash) { croak "Argument 2 missing: recipe hash\n" };
+  unless ($id) { croak "Argument 3 missing: recipe id\n"};
 
   my $rel_picdir = 'pics';
 
@@ -1346,10 +1348,10 @@ sub make_html_recipe_ingredients
   my $ingredient_hash = shift;
   my $id = shift;
 
-  unless ($doc) { die 'Argument missing: html document element' };
-  unless ($r_div) { die 'Argument missing: recipe div element' };
-  unless ($ingredient_hash) { die 'Argument missing: ingredient hash' };
-  unless ($id) { die 'Argument missing: recipe id' };
+  unless ($doc) { croak 'Argument missing: html document element' };
+  unless ($r_div) { croak 'Argument missing: recipe div element' };
+  unless ($ingredient_hash) { croak 'Argument missing: ingredient hash' };
+  unless ($id) { croak 'Argument missing: recipe id' };
 
   if ($ingredient_hash->{$id}) {
 
@@ -1414,10 +1416,10 @@ sub make_html_recipe_instructions
   my $recipe_hash = shift;
   my $id = shift;
 
-  unless ($doc) { die 'Argument missing: html document element' };
-  unless ($r_div) { die 'Argument missing: recipe div element' };
-  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
-  unless ($id) { die 'Argument missing: recipe id' };
+  unless ($doc) { croak 'Argument missing: html document element' };
+  unless ($r_div) { croak 'Argument missing: recipe div element' };
+  unless ($recipe_hash) { croak 'Argument missing: recipe hash' };
+  unless ($id) { croak 'Argument missing: recipe id' };
 
   if ($recipe_hash->{$id}->{'instructions'}) {
 
@@ -1463,10 +1465,10 @@ sub make_html_recipe_modifications
   my $recipe_hash = shift;
   my $id = shift;
 
-  unless ($doc) { die 'Argument missing: html document element' };
-  unless ($r_div) { die 'Argument missing: recipe div element' };
-  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
-  unless ($id) { die 'Argument missing: recipe id' };
+  unless ($doc) { croak 'Argument missing: html document element' };
+  unless ($r_div) { croak 'Argument missing: recipe div element' };
+  unless ($recipe_hash) { croak 'Argument missing: recipe hash' };
+  unless ($id) { croak 'Argument missing: recipe id' };
 
   if ($recipe_hash->{$id}->{'modifications'}) {
 
@@ -1506,8 +1508,8 @@ sub export2html_collect_data
   my $dbh = shift;
   my $ids = shift;
 
-  unless ($dbh) { die 'Argument missing: database handle' };
-  unless ($ids) { die 'Argument missing: list of ids (reference to array)' };
+  unless ($dbh) { croak 'Argument missing: database handle' };
+  unless ($ids) { croak 'Argument missing: list of ids (reference to array)' };
 
   my $add_recipes_needed = $class->get_recipes_involved($dbh, $ids);
   push (@{ $ids }, @{ $add_recipes_needed });
@@ -1537,7 +1539,7 @@ sub export_all_2html_collect_data
   my $class = shift;
   my $dbh = shift;
 
-  unless ($dbh) { die 'Argument missing: database handle' };
+  unless ($dbh) { croak 'Argument missing: database handle' };
 
   my $recipe_hash = $class->fetch_all_recipes($dbh);
 
@@ -1570,8 +1572,8 @@ sub export2html_collect_images
   my $html_dir = shift;
   my $pic_dir = shift;
 
-  unless ($dbh) { die 'Argument missing: database handle' };
-  unless ($recipe_hash) { die 'Argument missing: list of ids (reference to array)' };
+  unless ($dbh) { croak 'Argument missing: database handle' };
+  unless ($recipe_hash) { croak 'Argument missing: list of ids (reference to array)' };
   unless ($html_dir) { $html_dir = '.' };
   unless ($pic_dir) { $pic_dir = "$html_dir/pics"; };
 
@@ -1608,8 +1610,8 @@ sub export2html_collect_all_images
   my $html_dir = shift;
   my $pic_dir = shift;
 
-  unless ($dbh) { die 'Argument missing: database handle' };
-  unless ($recipe_hash) { die 'Argument missing: recipe hash, containing data for recipes' };
+  unless ($dbh) { croak 'Argument missing: database handle' };
+  unless ($recipe_hash) { croak 'Argument missing: recipe hash, containing data for recipes' };
   unless ($html_dir) { $html_dir = '.' };
   unless ($pic_dir) { $pic_dir = "$html_dir/pics"; };
 
@@ -1650,9 +1652,9 @@ sub export2html_id
   my $html_dir = shift;
   my $rel_picdir = shift;
 
-  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
-  unless ($ingredient_hash) { die 'Argument missing: ingredient hash' };
-  unless ($id) { die 'Argument missing: recipe id' };
+  unless ($recipe_hash) { croak 'Argument missing: recipe hash' };
+  unless ($ingredient_hash) { croak 'Argument missing: ingredient hash' };
+  unless ($id) { croak 'Argument missing: recipe id' };
   unless ($html_dir) { $html_dir = '.' };
   unless ($rel_picdir) { $rel_picdir = 'pics'; };
 
@@ -1732,8 +1734,8 @@ sub export2html_all
   my $html_dir = shift;
   my $rel_picdir = shift;
 
-  unless ($recipe_hash) { die 'Argument missing: recipe hash' };
-  unless ($ingredient_hash) { die 'Argument missing: ingredient hash' };
+  unless ($recipe_hash) { croak 'Argument missing: recipe hash' };
+  unless ($ingredient_hash) { croak 'Argument missing: ingredient hash' };
   unless ($html_dir) { $html_dir = '.' };
   unless ($rel_picdir) { $rel_picdir = 'pics'; };
 
@@ -1746,7 +1748,9 @@ sub export2html_all
     print STDERR "Title: $title\n";
 
     #### Where to save the html file to
-    my $file_name = "$html_dir/$id.html";
+    use File::Util qw(escape_filename);
+    my $title_sanitized = escape_filename($title);
+    my $file_name = "$html_dir/$title_sanitized$id.html";
 
     ##################################
     ### Setup header of html document
@@ -1813,19 +1817,20 @@ sub recipes_db2hashes
   my $recipes_file_name = shift;
   my $ingredients_file_name = shift;
 
-  unless ($recipe_hash) { die "1. argument recipe hash missing\n"; };
-  unless ($ingredients_hash) { die "2. argument ingredients hash missing\n"; };
+  unless ($recipe_hash) { croak "1. argument recipe hash missing\n"; };
+  unless ($ingredients_hash) { croak "2. argument ingredients hash missing\n"; };
 
   unless ($recipes_file_name) { $recipes_file_name = 'recipes.json' };
   unless ($ingredients_file_name) { $ingredients_file_name = 'ingredients.json' };
 
   use JSON::XS qw(encode_json decode_json);
+  use File::Slurp;
 
   my $json = encode_json($recipe_hash);
-  write_file('recipes.json', { binmode => ':raw' }, $json);
+  write_file($recipes_file_name, { binmode => ':raw' }, $json);
 
   $json = encode_json($ingredients_hash);
-  write_file('ingredients.json', { binmode => ':raw' }, $json);
+  write_file($ingredients_file_name, { binmode => ':raw' }, $json);
 
 };
 
