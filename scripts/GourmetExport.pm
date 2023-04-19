@@ -1745,6 +1745,7 @@ sub export2html_all
   foreach my $id (keys %{ $recipe_hash }) {
 
     my $title = $recipe_hash->{$id}->{'title'};
+    $id2file_name->{$id}->{'title'} = $title;
 
     #### Where to save the html file to
 
@@ -1754,7 +1755,7 @@ sub export2html_all
 
     my $file_name = "$html_dir/$title_sanitized$id.html";
 
-    $id2file_name->{$id} = $file_name;
+    $id2file_name->{$id}->{'html_file_name'} = $file_name;
     
     ##################################
     ### Setup header of html document
