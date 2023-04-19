@@ -1749,8 +1749,9 @@ sub export2html_all
     #### Where to save the html file to
 
     #### only keep ascii and blancs in title string
-    $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
     my $title_sanitized = $title;
+    $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
+
     my $file_name = "$html_dir/$title_sanitized$id.html";
 
     $id2file_name->{$id} = $file_name;
