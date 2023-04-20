@@ -1741,6 +1741,15 @@ sub export2html_all
     my $title = $recipe_hash->{$id}->{'title'};
     $id2file_name->{$id}->{'title'} = $title;
 
+
+    $id2file_name->{$id}->{'rating'} = $recipe_hash->{$id}->{'rating'};
+
+    unless ($recipe_hash->{$id}->{'category'}) {
+      print STDERR "Recipe $id $title has no category\n";
+    };
+
+    $id2file_name->{$id}->{'category'} = $recipe_hash->{$id}->{'category'};
+
     #### Where to save the html file to
 
     #### only keep ascii and blancs in title string
