@@ -131,7 +131,7 @@ my %table_headers = (
   'category' => 'Kategorie',
   'rating' => 'Bewertung',
   );
-foreach my $th_class (keys %table_headers) {
+foreach my $th_class (qw(title category rating)) {
   my $th = $dom->createElement('th');
   $th->setAttribute('class', $th_class);
   $th->appendText($table_headers{$th_class});
@@ -273,5 +273,5 @@ $html->addChild($body);
 # $html->appendChild($body);
 
 
-my $file_name = 'index.html';
+my $file_name = 'html_export/index.html';
 $dom->toFile($file_name, 1);

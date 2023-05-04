@@ -1756,9 +1756,15 @@ sub export2html_all
     my $title_sanitized = $title;
     $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
 
-    my $file_name = "$html_dir/$title_sanitized$id.html";
+    #### file name for links (in index file):
+    my $file_name = "$title_sanitized$id.html";
 
     $id2file_name->{$id}->{'html_file_name'} = $file_name;
+
+    #### where to actually write the file
+    $file_name = "$html_dir/$file_name";
+
+    
     
     ##################################
     ### Setup header of html document
