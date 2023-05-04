@@ -7,7 +7,6 @@
 
 SCRIPTS_PL=scripts
 
-# RECIPES_DB=/home/falk/.gourmet/recipes.20210715.db
 RECIPES_DB=/home/falk/webgourmet/tests/recipes.db
 
 JS_CSS=/home/falk/webgourmet/web
@@ -15,9 +14,18 @@ JS_CSS=/home/falk/webgourmet/web
 WWW_LOCAL=/var/www/html/rezepte
 WWW=/home/falk/www/rezepte
 
-.PHONY: clean_local copy_local clean_www copy_www show_last_db_mod
+HTML_LOCAL = html_export
+
+.PHONY: clean_local copy_local clean_www copy_www show_last_db_mod clean_html
 
 JSON=/home/falk/www/rezepte/recipes.json
+
+### extract data from gourmet db and store it in json hashes - needed later to generate html files
+
+recipe_hash.json ingredient_hash.json: $(SCRIPTS_PL)/extract_and_store_hashes.pl $(RECIPES_DB)
+	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=html_export
+
+
 
 ### generate json array containing recipes from gourmet sqlite db
 ## Please ensure that db is not locked when calling
@@ -78,5 +86,13 @@ copy_www:
 	cp index.html $(WWW)/ && \
 	cp $(JS_CSS)/*.js $(WWW)/ && \
 	cp $(JS_CSS)/*.css $(WWW)/
+
+### remove local html files (for testing)
+clean_html:
+	cd $(HTML_LOCAL) && \
+	rm -f *.htm* && \
+	rm -f index.html && \
+	rm -rf pics
+
 
 ### Makefile ends here
