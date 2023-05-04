@@ -25,7 +25,11 @@ JSON=/home/falk/www/rezepte/recipes.json
 recipe_hash.json ingredient_hash.json: $(SCRIPTS_PL)/extract_and_store_hashes.pl $(RECIPES_DB)
 	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=html_export
 
+### export data from json files to html, for all recipes and ingredients
+### generates a json file containing information for producing the html index
 
+id2file_name.json: $(SCRIPTS_PL)/export_all_recipes_2_html.pl recipe_hash.json ingredient_hash.json
+	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=html_export > $@
 
 ### generate json array containing recipes from gourmet sqlite db
 ## Please ensure that db is not locked when calling
