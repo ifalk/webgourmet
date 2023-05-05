@@ -21,6 +21,7 @@ HTML_LOCAL = html_export
 JSON=/home/falk/www/rezepte/recipes.json
 
 ### extract data from gourmet db and store it in json hashes - needed later to generate html files
+### also extracts images, stores them in html_dir/pics
 
 recipe_hash.json ingredient_hash.json: $(SCRIPTS_PL)/extract_and_store_hashes.pl $(RECIPES_DB)
 	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=html_export
@@ -97,6 +98,9 @@ clean_html:
 	rm -f *.htm* && \
 	rm -f index.html && \
 	rm -rf pics
-
+clean_json:
+	rm -f recipe_hash.json && \
+	rm -f ingredient_hash.json && \
+	rm -f id2file_name.json
 
 ### Makefile ends here
