@@ -1,7 +1,6 @@
 use lib '/home/falk/webgourmet/scripts';
 use GourmetExport;
 use Data::Dumper;
-use Test::More qw( no_plan );
 
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;

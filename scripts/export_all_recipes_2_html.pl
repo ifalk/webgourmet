@@ -1,7 +1,6 @@
 use lib '/home/falk/webgourmet/scripts';
 use GourmetExport;
 use Data::Dumper;
-use Test::More qw( no_plan );
 
 use JSON::XS qw(encode_json decode_json);
 use File::Slurp qw(read_file write_file);
