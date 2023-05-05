@@ -30,7 +30,15 @@ recipe_hash.json ingredient_hash.json: $(SCRIPTS_PL)/extract_and_store_hashes.pl
 ### generates a json file containing information for producing the html index
 
 id2file_name.json: $(SCRIPTS_PL)/export_all_recipes_2_html.pl recipe_hash.json ingredient_hash.json
-	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=html_export > $@
+	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=$(HTML_LOCAL) > $@ && \
+	sleep 2
+
+
+### produce index.html
+index.html: $(SCRIPTS_PL)/make_html_index.pl id2file_name.json
+	-perl $< --db=$(RECIPES_DB) --id2file_name_json=id2file_name.json && \
+	cp $@ $(HTML_LOCAL)/
+
 
 ### generate json array containing recipes from gourmet sqlite db
 ## Please ensure that db is not locked when calling
@@ -46,13 +54,6 @@ DB_LAST_MOD := $(shell echo $$RECIPES_DB)
 show_last_db_mod: $(RECIPES_DB)
 	DB_LAST_MOD=$$(stat -c %y $(RECIPES_DB) | cut -d" " -f1) ;\
 	echo $$DB_LAST_MOD
-
-### generate index.html by combining index file produced by gourmet
-### html export and recipes.json generated earlier
-index.html: $(SCRIPTS_PL)/make_html_index.pl $(HTML_INDEX) recipes.json $(RECIPES_DB)
-	DB_LAST_MOD=$$(stat -c %y $(RECIPES_DB) | cut -d" " -f1) ;\
-	echo $$DB_LAST_MOD ;\
-	perl $< --gourmet_index=$(HTML_INDEX) --db_last_mod=$$DB_LAST_MOD --json=recipes.json > $@
 
 ### copy files to apache root for test
 clean_local: 

@@ -5,21 +5,47 @@ use Data::Dumper;
 use JSON::XS qw(encode_json decode_json);
 use File::Slurp qw(read_file write_file);
 
-my $json = read_file('id2file_name.json', { binmode => ':raw' });
+use Getopt::Long 'HelpMessage';
+
+GetOptions(
+  'db=s' => \my $database,
+  'id2file_name_json=s' => \my $id2file_name_json_file_name,
+  ) or HelpMessage(1);
+
+=head1 NAME
+
+make_html_index.pl - produce html index from data extracted from gourmet db and stored in json files.
+
+=head1 SYNOPSIS
+
+  --db,-d             Gourmet database file (optional, if last modification date is extracted)
+  --html_dir          name of directory where html files will be stored, defaults to html_export
+  --rel_picdir        name of directory where images will be stored, is relative to html_dir and defaults to pics
+  --help,-h           Print this help
+
+=head1 VERSION
+
+0.01
+
+=cut
+
+my $json = read_file($id2file_name_json_file_name, { binmode => ':raw' });
 my $id2file_name = decode_json($json);
 
 #### extract last modification date (of db)
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 
-my $database = 'tests/recipes.db';
-my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
+my $last_access;
 
-my $last_access = Local::Modulino::GourmetExport->get_last_access($dbh);
-print STDERR "Last db access: $last_access\n";
+if ($database) {
+  my $dbh = Local::Modulino::GourmetExport->get_db_handle($database);
 
-$dbh->disconnect();
+  $last_access = Local::Modulino::GourmetExport->get_last_access($dbh);
+  print STDERR "Last db access: $last_access\n";
 
+  $dbh->disconnect();
+}
 
 ###########################################################################
 
@@ -82,8 +108,10 @@ $html->addChild($head);
 my $body = $dom->createElement('body');
 
 my $header_text = "Rezept Liste";
-my $add_header = "Export von gourmet db vom $last_access";
-$header_text = join(', ', $header_text, $add_header);
+if ($last_access) {
+  my $add_header = "Export von gourmet db vom $last_access";
+  $header_text = join(', ', $header_text, $add_header);
+}
 
 my $header = $dom->createElement('header');
 $header->appendText($header_text);
@@ -144,12 +172,14 @@ foreach my $id (sort by_title keys %{ $id2file_name }) {
     $title = $id2file_name->{$id}->{'title'};
   } else {
     print STDERR "Id $id: no title\n";
+    next;
   }
   my $file_name = $id2file_name->{$id}->{'html_file_name'};
   my $rating = $id2file_name->{$id}->{'rating'};
 
   unless ($id2file_name->{$id}->{'category'}) {
     print STDERR "Id $id: no category\n";
+    next;
   }
   my $category = $id2file_name->{$id}->{'category'};
 
@@ -197,80 +227,5 @@ $body->addChild($div);
 
 $html->addChild($body);
 
-
-
-
-
-# use XML::LibXML;
-
-
-# ############### html header ############################
-# my $version = '1.0';
-# my $encoding = 'utf-8';
-# my $doc = XML::LibXML::Document->new( $version, $encoding );
-
-# my $rootnode = 'html';
-# my $public = '-//W3C//DTD XHTML 1.0 Strict//EN';
-# my $system = 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd';
-# my $dtd = $doc->createInternalSubset( $rootnode, $public, $system);
-
-# my $html = $doc->createElementNS('http://www.w3.org/1999/xhtml', 'html');
-
-# my $head = $doc->createElement('head');
-
-# my $meta = $doc->createElement('meta');
-# $meta->setAttribute('http-equiv', 'content-type');
-# $meta->setAttribute('content', 'text/html; charset=utf-8');
-# $head->appendChild($meta);
-
-# $meta = $doc->createElement('meta');
-# $meta->setAttribute('name', 'viewport');
-# $meta->setAttribute('content', 'initial-scale=1.0, maximum-scale=1.0, width=device-width, user-scalable=no');
-# $head->appendChild($meta);
-
-
-# foreach my $script_src ('fraction-0.3.js', 'code.js') {
-#   my $script = $doc->createElement('script');
-#   $script->setAttribute('src', $script_src);
-#   $script->appendText(' ');
-#   $head->addChild($script);
-# }
-
-# my $link = $doc->createElement('link');
-# %atts = (
-# 	 'href' => 'styles.css',
-# 	 'rel' => 'stylesheet',
-# 	 'type' => 'text/css',
-# 	 'media' => 'screen'
-#   );
-
-# while (my ($att, $val) = each %atts) {
-#   $link->setAttribute($att, $val);
-# };
-# $head->addChild($link);
-
-# $html->addChild($head);
-
-# ############### html body ##########################################
-
-# my $body = $doc->createElement('body');
-
-# $html->appendChild($body);
-
-# my $header = $doc->createElement('header');
-# $header->appendText("Rezept Liste, Export von gourmet db vom $last_access");
-# $body->appendChild($header);
-
-# my $div = $doc->createElement('div');
-# $div->setAttribute('style', 'text-align:center;margin-bottom:25px');
-# my $a = $doc->createElement('a');
-# $a->setAttribute('href', '#alphabetisch');
-# $a->appendText('Zur alphabetisch sortierten Liste');
-# $div->appendChild($a);
-# $body->appendChild($div);
-
-# $html->appendChild($body);
-
-
-my $file_name = 'html_export/index.html';
+my $file_name = 'index.html';
 $dom->toFile($file_name, 1);
