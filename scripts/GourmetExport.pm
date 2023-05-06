@@ -641,8 +641,8 @@ sub fetch_all_categories
   ### if recipe hash is given update it with categories and return it
   if ($recipe_hash) {
     foreach my $id (keys %{ $cat_hash }) {
-      my $cat_string = join(', ', keys %{ $cat_hash->{$id} });
       if (exists $recipe_hash->{$id}) {
+        my $cat_string = join(', ', keys %{ $cat_hash->{$id} });
 	$recipe_hash->{$id}->{'category'} = $cat_string;
       }
     }
