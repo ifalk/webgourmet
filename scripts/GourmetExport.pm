@@ -1705,9 +1705,67 @@ sub export2html_id
 
   $doc->toFile($file_name, 1);
 
-  
-  
 };
+
+
+sub make_id2file_name
+  ### build and save information for recipes needed to build index.html file
+  ### based on data extracted from db (recipe table)
+  ### arguments (required)
+  ###   - recipe hash
+  ### returns: hash with ids as keys and title, category, rating and
+  ### name of generated html file as value
+{
+  my $class = shift;
+  my $recipe_hash = shift;
+  unless ($recipe_hash) { croak 'Argument missing: recipe hash' };
+
+  my $id2file_name = {};
+  foreach my $id (keys %{ $recipe_hash }) {
+    next unless ($id);
+    my $title = 'No title';
+    if ($recipe_hash->{$id}->{'title'}) {
+      $title = $recipe_hash->{$id}->{'title'};
+    } else {
+      print STDERR "Recipe $id has no title\n";
+    }
+    $id2file_name->{$id}->{'title'} = $title;
+
+
+    $id2file_name->{$id}->{'rating'} = $recipe_hash->{$id}->{'rating'};
+
+    if (exists $recipe_hash->{$id}->{'category'}) {
+      $id2file_name->{$id}->{'category'} = $recipe_hash->{$id}->{'category'};
+    } else {
+      print STDERR "Recipe $id $title has no category\n";
+    };
+
+    #### only keep ascii and blancs in title string
+    my $title_sanitized = $title;
+    $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
+
+    #### file name for links (in index file):
+    my $file_name = "$title_sanitized$id.html";
+
+    $id2file_name->{$id}->{'html_file_name'} = $file_name;
+    
+  }
+
+  my $categories = {};
+
+  foreach my $id (keys %{ $id2file_name }) {
+    if ($id2file_name->{$id}->{'category'}) {
+      $categories->{$id2file_name->{$id}->{'category'}}->{$id}++;
+    }
+  }
+
+  foreach my $cat (sort keys %{ $categories }) {
+    print STDERR "$cat\n";
+  }
+
+  return $id2file_name;
+
+}
 
 sub export2html_all
   ### build and save html file for all recipes, based on recipe and ingredient data
@@ -1734,36 +1792,17 @@ sub export2html_all
   unless ($html_dir) { $html_dir = '.' };
   unless ($rel_picdir) { $rel_picdir = 'pics'; };
 
-  my $id2file_name = {};
+  my $id2file_name = $class->make_id2file_name($recipe_hash);
+
 
   foreach my $id (keys %{ $recipe_hash }) {
 
-    my $title = $recipe_hash->{$id}->{'title'};
-    $id2file_name->{$id}->{'title'} = $title;
 
-
-    $id2file_name->{$id}->{'rating'} = $recipe_hash->{$id}->{'rating'};
-
-    unless ($recipe_hash->{$id}->{'category'}) {
-      print STDERR "Recipe $id $title has no category\n";
-    };
-
-    $id2file_name->{$id}->{'category'} = $recipe_hash->{$id}->{'category'};
-
-    #### Where to save the html file to
-
-    #### only keep ascii and blancs in title string
-    my $title_sanitized = $title;
-    $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
-
-    #### file name for links (in index file):
-    my $file_name = "$title_sanitized$id.html";
-
-    $id2file_name->{$id}->{'html_file_name'} = $file_name;
-
-    #### where to actually write the file
+    my $title = $id2file_name->{$id}->{'title'};
+    
+    #### where to write the file
+    my $file_name = $id2file_name->{$id}->{'html_file_name'};
     $file_name = "$html_dir/$file_name";
-
     
     
     ##################################
@@ -1814,6 +1853,7 @@ sub export2html_all
 
   }
 
+  
   return $id2file_name;
   
 };

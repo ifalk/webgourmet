@@ -43,24 +43,88 @@ print STDERR "Recipes with more than one category:\n";
 foreach my $recipe_id (keys %{ $cat_hash }) {
   if (scalar(keys %{ $cat_hash->{$recipe_id} }) > 1) {
     print STDERR "$recipe_id\n";
+    print STDERR $recipe_hash->{$id}->{'category'}, "\n";
   }
 }
 
-my $categories = {};
+print STDERR "\n\n\n";
 
 foreach my $id (keys %{ $cat_hash }) {
   if (exists $recipe_hash->{$id}) {
     my $cat_string = join(', ', sort keys %{ $cat_hash->{$id} });
     $recipe_hash->{$id}->{'category'} = $cat_string;
-    $categories->{$cat_string}->{$id}++;
   }
 }
 
+
+# print STDERR $recipe_hash->{1824}->{'category'}, "\n";
+
+my $categories = {};
+
+foreach my $id (keys %{ $recipe_hash }) {
+  if ($recipe_hash->{$id}->{'category'}) {
+    $categories->{$recipe_hash->{$id}->{'category'}}->{$id}++;
+  }
+}
 foreach my $cat (sort keys %{ $categories }) {
-  print STDERR "$cat\n";
+  print STDERR "$cat+\n";
 }
 
-print STDERR $recipe_hash->{1824}->{'category'}, "\n";
+#### json file contains wrong categories:
+##########################################
 
-# is_deeply($db_categories, $categories, 'hashes should be the same');
-# print STDERR Dumper($categories);
+# $json = read_file('id2file_name.json', { binmode => ':raw' });
+# my $id2file_name = decode_json($json);
+
+# $categories = {};
+
+# foreach my $id (keys %{ $id2file_name }) {
+#   $categories->{$id2file_name->{$id}->{'category'}}->{$id}++;
+# }
+
+# foreach my $cat (sort keys %{ $categories }) {
+#   print STDERR "$cat\n";
+# }
+
+#### recompute id2file_name
+
+# my $id2file_name = {};
+
+# foreach my $id (keys %{ $recipe_hash }) {
+
+#   my $title = $recipe_hash->{$id}->{'title'};
+#   $id2file_name->{$id}->{'title'} = $title;
+
+
+#   $id2file_name->{$id}->{'rating'} = $recipe_hash->{$id}->{'rating'};
+
+#   unless ($recipe_hash->{$id}->{'category'}) {
+#     print STDERR "Recipe $id $title has no category\n";
+#   };
+
+#   $id2file_name->{$id}->{'category'} = $recipe_hash->{$id}->{'category'};
+
+#   #### Where to save the html file to
+
+#   #### only keep ascii and blancs in title string
+#   my $title_sanitized = $title;
+#   $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
+
+#   #### file name for links (in index file):
+#   my $file_name = "$title_sanitized$id.html";
+
+#   $id2file_name->{$id}->{'html_file_name'} = $file_name;
+# };
+
+
+my $id2file_name = Local::Modulino::GourmetExport->make_id2file_name($recipe_hash);
+
+$categories = {};
+
+foreach my $id (keys %{ $id2file_name }) {
+  $categories->{$id2file_name->{$id}->{'category'}}->{$id}++;
+}
+print STDERR "-----\n";
+foreach my $cat (sort keys %{ $categories }) {
+  print STDERR "$cat+\n";
+}
