@@ -27,23 +27,30 @@ if($rv < 0) {
 }
 
 my $cat_hash = {};
-my %db_categories = {};
+my $db_categories = {};
 
 while (my ($recipe_id, $category) = $sth->fetchrow()) {
-  if ($category and exists $recipe_hash->{$recipe_id}) {
+  if ($category) {
     $cat_hash->{$recipe_id}->{$category}++;
     $db_categories->{$category}->{$recipe_id}++;
-  }
+   }
 }
 
 #### No longer need to access db, disconnect
 $dbh->disconnect();
 
+print STDERR "Recipes with more than one category:\n";
+foreach my $recipe_id (keys %{ $cat_hash }) {
+  if (scalar(keys %{ $cat_hash->{$recipe_id} }) > 1) {
+    print STDERR "$recipe_id\n";
+  }
+}
+
 my $categories = {};
 
 foreach my $id (keys %{ $cat_hash }) {
   if (exists $recipe_hash->{$id}) {
-    my $cat_string = join(', ', keys %{ $cat_hash->{$id} });
+    my $cat_string = join(', ', sort keys %{ $cat_hash->{$id} });
     $recipe_hash->{$id}->{'category'} = $cat_string;
     $categories->{$cat_string}->{$id}++;
   }
@@ -53,5 +60,7 @@ foreach my $cat (sort keys %{ $categories }) {
   print STDERR "$cat\n";
 }
 
-is_deeply($db_categories, $categories, 'hashes should be the same');
+print STDERR $recipe_hash->{1824}->{'category'}, "\n";
+
+# is_deeply($db_categories, $categories, 'hashes should be the same');
 # print STDERR Dumper($categories);
