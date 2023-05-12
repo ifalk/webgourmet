@@ -16,7 +16,7 @@ WWW=/home/falk/www/rezepte
 
 HTML_LOCAL = html_export
 
-.PHONY: clean_local copy_local clean_www copy_www show_last_db_mod clean_html
+.PHONY: clean_local copy_local clean_www copy_www show_last_db_mod clean_html clean_json
 
 JSON=/home/falk/www/rezepte/recipes.json
 
@@ -24,18 +24,21 @@ JSON=/home/falk/www/rezepte/recipes.json
 ### also extracts images, stores them in html_dir/pics
 
 recipe_hash.json ingredient_hash.json: $(SCRIPTS_PL)/extract_and_store_hashes.pl $(RECIPES_DB)
+	$(info Make: *** Extracting data from db, storing in json hashes ***)
 	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=html_export
 
 ### export data from json files to html, for all recipes and ingredients
 ### generates a json file containing information for producing the html index
 
 id2file_name.json: $(SCRIPTS_PL)/export_all_recipes_2_html.pl recipe_hash.json ingredient_hash.json
+	$(info Make: *** Exporting all recipes to html ***)
 	-perl $< --db=$(RECIPES_DB) --recipe_json=recipe_hash.json --ingredient_json=ingredient_hash.json --html_dir=$(HTML_LOCAL) > $@ && \
 	sleep 2
 
 
 ### produce index.html
 index.html: $(SCRIPTS_PL)/make_html_index.pl id2file_name.json
+	$(info Make: *** Producing index.html ***)
 	-perl $< --db=$(RECIPES_DB) --id2file_name_json=id2file_name.json && \
 	cp $@ $(HTML_LOCAL)/
 
@@ -65,10 +68,10 @@ clean_local:
 	sudo rm -f *.css && \
 	sudo rm -f *.js
 
-copy_local: clean_local recipes.json index.html
-	sudo cp $(HTML)/*.htm $(WWW_LOCAL)/ && \
-	sudo cp -r $(HTML)/pics $(WWW_LOCAL)/ && \
-	sudo cp $(HTML)/style.css $(WWW_LOCAL)/ && \
+copy_local: clean_local #recipes.json index.html
+	sudo cp $(HTML_LOCAL)/*.htm* $(WWW_LOCAL)/ && \
+	sudo cp -r $(HTML_LOCAL)/pics $(WWW_LOCAL)/ && \
+	sudo cp $(HTML_LOCAL)/style.css $(WWW_LOCAL)/ && \
 	sudo cp recipes.json $(WWW_LOCAL)/ && \
 	sudo cp index.html $(WWW_LOCAL)/ && \
 	sudo cp $(JS_CSS)/*.js $(WWW_LOCAL)/ && \
