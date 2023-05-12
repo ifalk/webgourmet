@@ -635,7 +635,9 @@ sub fetch_all_categories
   my $cat_hash = {};
 
   while (my ($recipe_id, $category) = $sth->fetchrow()) {
-    $cat_hash->{$recipe_id}->{$category}++;
+    if ($category) {
+      $cat_hash->{$recipe_id}->{$category}++;
+    }
   }
 
   ### if recipe hash is given update it with categories and return it
