@@ -1611,6 +1611,7 @@ sub export2html_collect_all_images
   unless ($html_dir) { $html_dir = '.' };
   unless ($pic_dir) { $pic_dir = "$html_dir/pics"; };
 
+  print STDERR "Retrieving and saving images...\n";
   my $id2image_file = $class->fetch_all_images($dbh, $pic_dir);
   # my $img_nbr = scalar(keys %{ $id2image_file });
 
@@ -1753,18 +1754,6 @@ sub make_id2file_name
     
   }
 
-  my $categories = {};
-
-  foreach my $id (keys %{ $id2file_name }) {
-    if ($id2file_name->{$id}->{'category'}) {
-      $categories->{$id2file_name->{$id}->{'category'}}->{$id}++;
-    }
-  }
-
-  foreach my $cat (sort keys %{ $categories }) {
-    print STDERR "$cat\n";
-  }
-
   return $id2file_name;
 
 }
@@ -1796,6 +1785,7 @@ sub export2html_all
 
   my $id2file_name = $class->make_id2file_name($recipe_hash);
 
+  print STDERR "Generating html files for all recipes...\n";
 
   foreach my $id (keys %{ $recipe_hash }) {
 
