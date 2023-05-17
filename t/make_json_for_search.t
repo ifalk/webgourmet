@@ -25,7 +25,8 @@ my $id2file_name = decode_json($json);
 
 my @recipes_json;
 
-foreach my $id (sort {$a <=> $b} (keys %{ $recipe_hash })[0..20]) {
+# foreach my $id (sort {$a <=> $b} (keys %{ $recipe_hash })[0..20]) {
+foreach my $id (sort {$a <=> $b} keys %{ $recipe_hash }) {
   next unless (exists $id2file_name->{$id} and exists $id2file_name->{$id}->{'html_file_name'});
 
   ### do we need this?

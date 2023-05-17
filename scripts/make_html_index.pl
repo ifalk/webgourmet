@@ -81,7 +81,7 @@ $meta->setAttribute('name', 'viewport');
 $meta->setAttribute('content', 'initial-scale=1.0, maximum-scale=1.0, width=device-width, user-scalable=no');
 $head->addChild($meta);
 
-foreach my $script_src ('fraction-0.3.js', 'code.js') {
+foreach my $script_src ('https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js', 'fraction-0.3.js', 'code.js') {
   my $script = $dom->createElement('script');
   $script->setAttribute('src', $script_src);
   $script->appendText(' ');
