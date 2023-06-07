@@ -66,7 +66,7 @@ recipes.json: $(SCRIPTS_PL)/make_json_for_search.pl recipe_hash.json ingredient_
 ### copy files to apache root for test
 clean_local: 
 	cd $(WWW_LOCAL) && \
-	sudo rm -f *.htm && \
+	sudo rm -f *.htm* && \
 	sudo rm -rf pics && \
 	sudo rm -f recipes.json && \
 	sudo rm -f index.html && \
