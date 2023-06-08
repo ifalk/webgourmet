@@ -69,10 +69,10 @@ $recipe_hash = Local::Modulino::GourmetExport->fetch_all_categories($dbh, $recip
 #### does every recipe have a category?
 my $recipes_wo_cat = Local::Modulino::GourmetExport->recipes_wo_cat($recipe_hash);
 my $nbr_recipes_wo_cat = scalar(keys %{ $recipes_wo_cat });
-print STDERR "Found $nbr_recipes_wo_cat recipes wo a category\n";
-print STDERR Dumper($recipes_wo_cat);
-print STDERR Dumper($recipe_hash->{'1893'});
-
+print STDERR "Found $nbr_recipes_wo_cat recipes without a category\n";
+if ($nbr_recipes_wo_cat) {
+  print STDERR Dumper($recipes_wo_cat);
+}
 
 #### Need html directory at this stage! Image location is saved in recipe hash!
 #### nicht so ideal...
