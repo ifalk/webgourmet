@@ -1293,6 +1293,7 @@ sub make_html_recipe_description
   if (my $link = $recipe_hash->{$id}->{'link'}) {
     $a = $doc->createElement('a');
     $a->setAttribute('href', $link);
+    $a->setAttribute('target', '_blank');
     $a->appendText("Originalseite: $link");
 
     $div->appendChild($a);
