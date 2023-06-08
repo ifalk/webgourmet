@@ -315,7 +315,9 @@ sub fetch_all_ingredients
       my $refid = $ing_list->{'refid'};
       if ($recipe_hash and $recipe_hash->{$refid}) {
 	my $reftitle = $recipe_hash->{$refid}->{'title'};
-	$refid = "$reftitle$refid.html";
+	my $title_sanitized = $reftitle;
+	$title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
+	$refid = "$title_sanitized$refid.html";
       }
       # $ing_hash->{$recipe_id}->{$ing_group}->{$item}->{refid} = $ing_list->{refid};
       $item_hash->{'refid'} = $refid;
