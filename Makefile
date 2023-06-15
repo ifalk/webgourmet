@@ -8,7 +8,8 @@
 SCRIPTS_PL=scripts
 
 #RECIPES_DB=/home/falk/webgourmet/tests/recipes.db
-RECIPES_DB=/home/falk/webgourmet/recipes_202306.db
+#RECIPES_DB=/home/falk/webgourmet/recipes_202306.db
+RECIPES_DB=/home/falk/webgourmet/recipes_20230615.db
 
 JS_CSS=/home/falk/webgourmet/web
 
@@ -16,6 +17,7 @@ WWW_LOCAL=/var/www/html/rezepte
 WWW=/home/falk/www/rezepte
 
 HTML_LOCAL = html_export
+
 
 .PHONY: clean_local copy_local clean_www copy_www show_last_db_mod clean_html clean_json
 
@@ -85,7 +87,7 @@ copy_local: clean_local recipes.json index.html
 ### copy files to www directory - so they can be transfered to server via git
 clean_www:
 	cd $(WWW) && \
-	rm -f *.htm && \
+	rm -f *.htm* && \
 	rm -rf pics && \
 	rm -f recipes.json && \
 	rm -f index.html && \
@@ -93,9 +95,9 @@ clean_www:
 	rm -f *.js
 
 copy_www:
-	cp $(HTML)/*.htm $(WWW)/ && \
-	cp -r $(HTML)/pics $(WWW)/ && \
-	cp $(HTML)/style.css $(WWW)/ && \
+	cp $(HTML_LOCAL)/*.html $(WWW)/ && \
+	cp -r $(HTML_LOCAL)/pics $(WWW)/ && \
+	cp $(HTML_LOCAL)/style.css $(WWW)/ && \
 	cp recipes.json $(WWW)/ && \
 	cp index.html $(WWW)/ && \
 	cp $(JS_CSS)/*.js $(WWW)/ && \
