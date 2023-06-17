@@ -95,7 +95,7 @@ clean_www:
 	rm -f *.js
 
 copy_www:
-	cp $(HTML_LOCAL)/*.html $(WWW)/ && \
+	cp $(HTML_LOCAL)/*.htm* $(WWW)/ && \
 	cp -r $(HTML_LOCAL)/pics $(WWW)/ && \
 	cp $(HTML_LOCAL)/style.css $(WWW)/ && \
 	cp recipes.json $(WWW)/ && \
