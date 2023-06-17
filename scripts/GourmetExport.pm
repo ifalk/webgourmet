@@ -1662,7 +1662,7 @@ sub export2html_id
   print STDERR "id: $id, title: $title\n";
 
   #### Where to save the html file to
-  my $file_name = "$html_dir/$title$id.html";
+  my $file_name = "$html_dir/$title$id.htm";
 
 
   ##################################
@@ -1751,7 +1751,7 @@ sub make_id2file_name
     $title_sanitized =~ s{[^A-Za-z0-9 ]}{}g;
 
     #### file name for links (in index file):
-    my $file_name = "$title_sanitized$id.html";
+    my $file_name = "$title_sanitized$id.htm";
 
     $id2file_name->{$id}->{'html_file_name'} = $file_name;
     
