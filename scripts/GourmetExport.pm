@@ -1250,6 +1250,7 @@ sub make_html_recipe_description
     'source' => 'Quelle',
     'last_modified' => 'Letzte Änderung',
     'recipe_id' => 'Rezept Nr.',
+    'rating' => 'Bewertung',
     );
 
   my %cols2itemprops = (
@@ -1277,6 +1278,7 @@ sub make_html_recipe_description
       $div->appendChild($p);
     }
   }
+  
 
   if ($recipe_hash->{$id}->{'source'}) {
     $p = $doc->createElement('p');
@@ -1299,6 +1301,23 @@ sub make_html_recipe_description
     $div->appendChild($a);
   }
 
+  if ($recipe_hash->{$id}->{'rating'}) {
+    $p = $doc->createElement('p');
+    $p->setAttribute('class', 'rating');
+    $span = $doc->createElement('span');
+    $span->setAttribute('class', 'label');
+    $span->appendText("$cols2labels{'rating'}:");
+    $p->appendChild($span);
+    $p->appendText(" $recipe_hash->{$id}->{'rating'}");
+
+    $div->appendChild($p);
+  }
+
+  my $hr = $doc->createElement('hr');
+  my $hr_style = "width: 30%;text-align:left;margin-left:0";
+  $hr->setAttribute('style', $hr_style);
+  $div->appendChild($hr);
+  
   if ($recipe_hash->{$id}->{'last_modified'}) {
     $p = $doc->createElement('p');
     $p->setAttribute('class', 'last_modified');
@@ -1310,6 +1329,8 @@ sub make_html_recipe_description
 
     $div->appendChild($p);
   }
+
+
 
   $p = $doc->createElement('p');
   $p->setAttribute('class', 'recipe_id');
