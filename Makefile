@@ -9,7 +9,8 @@ SCRIPTS_PL=scripts
 
 #RECIPES_DB=/home/falk/webgourmet/tests/recipes.db
 #RECIPES_DB=/home/falk/webgourmet/recipes_202306.db
-RECIPES_DB=/home/falk/webgourmet/recipes_20230615.db
+#RECIPES_DB=/home/falk/webgourmet/recipes_20230615.db
+RECIPES_DB=/home/falk/webgourmet/recipes_20240205.db
 
 JS_CSS=/home/falk/webgourmet/web
 
