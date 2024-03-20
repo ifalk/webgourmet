@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NoSleep.js - Simple Test Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+  .wprm-toggle-switch .wprm-toggle-switch-slider{background-color:#ccc;cursor:pointer;height:20px;left:0;margin-top:-10px;position:absolute;right:0;top:50%;-webkit-transition:.4s;transition:.4s;width:40px}
+  .wprm-toggle-switch .wprm-toggle-switch-slider:before{background-color:#fff;bottom:10%;content:"";height:80%;left:7%;position:absolute;right:50%;-webkit-transition:.4s;transition:.4s}
+  .wprm-toggle-switch input:checked+.wprm-toggle-switch-slider{background-color:#333!important}
+  .wprm-toggle-switch input:focus+.wprm-toggle-switch-slider{box-shadow:0 0 0 3px rgba(0,0,0,.12)}
+  .wprm-toggle-switch input:checked+.wprm-toggle-switch-slider:before{left:50%;right:7%}
+  .wprm-toggle-switch .wprm-toggle-switch-label{margin-left:50px}
+  .wprm-toggle-switch-rounded .wprm-toggle-switch-slider:before{border-radius:50%}
+
+    </style>
+  </head>
+  <body>
+    <h1>NoSleep Test Page</h1>
+    <script src="NoSleep.min.js"></script>
+
+    <!-- <input type="button" id="toggle" value="Wake Lock is disabled" /> -->
+    
+    <!-- Rounded switch -->
+
+    
+    <!-- <label class="switch"> -->
+    <!--   <input type="checkbox" id="toggle"> -->
+    <!--   <span class="slider round"></span> -->
+    <!-- </label> -->
+
+
+    <label id="wprm-toggle-switch-218813865" class="wprm-toggle-switch wprm-toggle-switch-rounded">
+      <input type="checkbox" id="wprm-prevent-sleep-checkbox-218813865" class="wprm-prevent-sleep-checkbox" />
+      <span class="wprm-toggle-switch-slider" style="width: 40px;height: 20px;margin-top: -10px;background-color: #cccccc;border-radius: 10px;">
+      </span>
+      <span class="wprm-toggle-switch-label wprm-prevent-sleep-label wprm-block-text-bold" style="margin-left: 50px;">Cook Mode</span>
+    </label>
+
+    
+    <script>
+      var noSleep = new NoSleep();
+
+      var wakeLockEnabled = false;
+      var toggleEl = document.querySelector("#toggle");
+      toggleEl.addEventListener('click', function() {
+        if (!wakeLockEnabled) {
+          noSleep.enable(); // keep the screen on!
+          wakeLockEnabled = true;
+          toggleEl.value = "Wake Lock is enabled";
+          document.body.style.backgroundColor = "green";
+        } else {
+          noSleep.disable(); // let the screen turn off.
+          wakeLockEnabled = false;
+          toggleEl.value = "Wake Lock is disabled";
+          document.body.style.backgroundColor = "";
+        }
+      }, false);
+    </script>
+
+  </body>
+</html>
