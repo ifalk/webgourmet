@@ -147,6 +147,12 @@ $div->addChild($sdiv);
 my $dl = $dom->createElement('dl');
 $dl->setAttribute('class', 'recipelist');
 $div->addChild($dl);
+
+### Liste der Kategorien zufügen
+my $ul = $dom->createElement('ul');
+$ul->setAttribute('class', 'catindex');
+$div->addChild($ul);
+
 $body->addChild($div);
 
 

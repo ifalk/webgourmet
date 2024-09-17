@@ -59,14 +59,33 @@ div#recipedetail {
     padding: 0;
 }
 
-div#recipelist dl dd {
-    cursor:pointer;
-    list-style-type: none;
-/*    margin:0; */
+/* div#recipelist dl dd { */
+/*     cursor:pointer; */
+/*     list-style-type: none; */
+/* /\*    margin:0; *\/ */
+/* } */
+
+/* div#catindex dl dd { */
+/*     cursor:pointer; */
+/*     list-style-type: none; */
+/* /\*    margin:0; *\/ */
+/* } */
+
+/* div#recipelist dl dd.selected { */
+/*     font-weight:bold; */
+/* } */
+
+/* div#catindex dl dd.selected { */
+/*     font-weight:bold; */
+/* } */
+
+ul {
+    list-style: none;
 }
 
-div#recipelist dl dd.selected {
-    font-weight:bold;
+li {
+    display: inline-block;
+    margin-right: 10px;
 }
 
 input#yields {

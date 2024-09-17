@@ -48,18 +48,33 @@ function populate_list(filter) {
         }
     });
 
+    
+    // Create a list of categories
+    var usedcategs=Object.keys(categs).sort();
+    
+
     // Remove all recipes and re-add just those that respect the filter, classifying them by category
     $("dl.recipelist dt").remove();
     $("dl.recipelist dd").remove();
     var items = [];
-    var usedcategs=Object.keys(categs).sort();
     $.each(usedcategs,function(index,categname){
-        items.push("<dt>"+categname+"</dt>");
+	// anchor category titles so we can link to them
+	items.push("<dt id='" + categname + "'>" + categname + "</a>"+ "</dt>");
+	// items.push("<dt>" + categname + "</dt>");
         for(i=0;i<categs[categname].length;i++)
             items.push( "<dd id='" + categs[categname][i] + "'>" + recipes[categs[categname][i]].title + "</dd>" );
     });
     $("dl.recipelist").append(items);
 
+    // Build list of categories, link to category headers in recipe list
+    var cats=[];
+    $("ul.catindex li").remove();
+    $.each(usedcategs,function(index,categname){
+	cats.push("<li> <a href='#" + categname + "'>" + categname + "</a> </li>");
+	// cats.push("<dt>" + categname + "</dt>");
+    });
+    $("ul.catindex").append(cats);
+    
     /* Re-select previously selected items, if any */
     if (selid!=null)
         $("ul.recipelist li").filter('[id="'+selid+'"]').addClass("selected");
