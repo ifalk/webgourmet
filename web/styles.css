@@ -1,127 +1,62 @@
-body {
-    background-color:aliceblue;
-    font-family: 'Lato',sans-serif;
-    font-size: 1em;
-/*    text-align: center; */
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
 }
 
-/*
-h1,h2,div,ul {
-    border: 1px solid;
-}*/
-
-header {
-    font-size: 1.75em;
-    font-weight: bold;
-    margin: 0.67em 0em;
-    text-align: center;
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-h2 {
-    font-size: 1.1em;
-    color: #006;
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
 }
 
-dl {
-    list-style: none;
-    padding: 0;
-    font-size: 1em;
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
 }
 
-dt {
-    font-weight: bold;
-    margin: 0.5em 0em;
-    color: #006;
-    font-size: 1.1em;
-    text-align: center;
-}
-p#instructions,p#modifications {
-    text-align: left;
-    /*    padding: 0 10em;*/
-    width: 100%;
-    margin: 1em auto;
+input:checked + .slider {
+  background-color: #2196F3;
 }
 
-#yieldunits {
-    font-size: 1em;
-    font-weight: normal;
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
 }
 
-div#recipedetail {
-    display:none;
-    max-width: 40em;
-    margin: 1em auto;
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
 }
 
-#recipedetail ul {
-    list-style-type:none;
-    margin: 0;
-    padding: 0;
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
 }
 
-/* div#recipelist dl dd { */
-/*     cursor:pointer; */
-/*     list-style-type: none; */
-/* /\*    margin:0; *\/ */
-/* } */
-
-/* div#catindex dl dd { */
-/*     cursor:pointer; */
-/*     list-style-type: none; */
-/* /\*    margin:0; *\/ */
-/* } */
-
-/* div#recipelist dl dd.selected { */
-/*     font-weight:bold; */
-/* } */
-
-/* div#catindex dl dd.selected { */
-/*     font-weight:bold; */
-/* } */
-
-ul {
-    list-style: none;
+.slider.round:before {
+  border-radius: 50%;
 }
-
-li {
-    display: inline-block;
-    margin-right: 10px;
-}
-
-input#yields {
-    width: 3em;
-}
-
-input[type=number] {
-    font-size: 1em;
-    text-align: center;
-}
-
-/* Hide input spinner buttons */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-}
-
-input[type=text] {
-    font-size: 1em;
-    text-align: center;
-}
-
-input[type=button] {
-    font-size: 1em;
-}
-
-/* Don't use fancy fonts in low-res screens */
-@media only screen and (max-width:720px) {
-    body {
-        font-family: sans-serif;
-    }
-}
-/*
-@media (orientation:landscape) {
-    h1#title {
-        text-align:left;
-    }
-
-}*/
