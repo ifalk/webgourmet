@@ -1147,7 +1147,7 @@ sub setup_html_header
   ### sets up html header
   ### needed for header:
   ###      - recipe title
-  ###      - link to stylesheet: style.css
+  ###      - link to stylesheets: style.css, styles.css
   ### returns document element and html element
 {
   my $class = shift;
@@ -1179,6 +1179,15 @@ sub setup_html_header
   $css_link->setAttribute('type', 'text/css');
   $head->appendChild($css_link);
 
+  # we also need scripts for cooking mode slider
+
+  my $script = $doc->createElement('script');
+  $script->setAttribute('src', 'Nosleep.min.js');
+  $head->appendChild($script);
+  $script = $doc->createElement('script');
+  $script->setAttribute('src', 'wakelock.js');
+  $head->appendChild($script);
+  
   $html->appendChild($head);
 
   return ($doc, $html);
@@ -1860,6 +1869,41 @@ sub export2html_all
 
     $body->appendChild($r_div);
 
+    ###################################################################
+    ### cooking mode slider
+    my $cm_div = $doc->createElement('div');
+    $cm_div->setAttribute('class', 'cookmode');
+    my $p = $doc->createElement('p');
+    $p->setAttribute('id', 'toggle');
+    $cm_div->appendChild($p);
+
+    my $label = $doc->createElement('label');
+    $label->setAttribute('class', 'switch');
+
+    my $input_attributes = {
+      type => 'checkbox',
+      id => 'check',
+      onclick => 'toggleWakeLock()'
+    };
+
+    my $input = $doc->createElement('input');
+    foreach my $att_name (keys %{ $input_attributes }) {
+      $input->setAttribute("$att_name", $input_attributes->{$att_name});
+    };
+
+    my $slider_span = $doc->createElement('span');
+    $slider_span->setAttribute('class', 'slider round');
+
+    $input->appendChild($slider_span);
+
+    $label->appendChild($input);
+
+    $cm_div->appendChild($label);
+
+    $body->appendChild($cm_div);
+
+    ### end cooking mode slider ###############################
+    
     $html->appendChild($body);
 
     $doc->setDocumentElement($html);
