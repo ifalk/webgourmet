@@ -1179,10 +1179,16 @@ sub setup_html_header
   $css_link->setAttribute('type', 'text/css');
   $head->appendChild($css_link);
 
+  # $css_link = $doc->createElement('link');
+  # $css_link->setAttribute('rel', 'stylesheet');
+  # $css_link->setAttribute('href', 'styles.css');
+  # $css_link->setAttribute('type', 'text/css');
+  # $head->appendChild($css_link);
+  
   # we also need scripts for cooking mode slider
 
   my $script = $doc->createElement('script');
-  $script->setAttribute('src', 'Nosleep.min.js');
+  $script->setAttribute('src', 'NoSleep.min.js');
   $head->appendChild($script);
   $script = $doc->createElement('script');
   $script->setAttribute('src', 'wakelock.js');
@@ -1873,32 +1879,42 @@ sub export2html_all
     ### cooking mode slider
     my $cm_div = $doc->createElement('div');
     $cm_div->setAttribute('class', 'cookmode');
-    my $p = $doc->createElement('p');
-    $p->setAttribute('id', 'toggle');
-    $cm_div->appendChild($p);
+    # my $p = $doc->createElement('p');
+    # $p->setAttribute('id', 'toggle');
+    # $cm_div->appendChild($p);
 
     my $label = $doc->createElement('label');
     $label->setAttribute('class', 'switch');
 
+    my $input = $doc->createElement('input');
     my $input_attributes = {
       type => 'checkbox',
       id => 'check',
       onclick => 'toggleWakeLock()'
     };
-
-    my $input = $doc->createElement('input');
     foreach my $att_name (keys %{ $input_attributes }) {
       $input->setAttribute("$att_name", $input_attributes->{$att_name});
     };
+    $label->appendChild($input);
 
     my $slider_span = $doc->createElement('span');
     $slider_span->setAttribute('class', 'slider round');
-
-    $input->appendChild($slider_span);
-
-    $label->appendChild($input);
+    $label->appendChild($slider_span);
 
     $cm_div->appendChild($label);
+
+    $input = $doc->createElement('input');
+    $input_attributes = {
+      type => 'button',
+      id => 'toggle',
+      value => 'Kochmodus einschalten',
+    };
+    foreach my $att_name (keys %{ $input_attributes }) {
+      $input->setAttribute("$att_name", $input_attributes->{$att_name});
+    };
+    
+    $cm_div->appendChild($input);
+
 
     $body->appendChild($cm_div);
 

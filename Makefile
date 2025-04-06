@@ -109,6 +109,7 @@ copy_www:
 
 ### remove local html files (for testing)
 clean_html:
+	rm -f index.html && \
 	cd $(HTML_LOCAL) && \
 	rm -f *.htm* && \
 	rm -f index.html && \
